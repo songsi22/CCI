@@ -15,17 +15,17 @@ class KTCAPI(CSPInterface):
         self.token_expiry = 0
         self.project_id = None
         if self.gov:
-            self.BASE_URL = 'https://api.ucloudbiz.olleh.com/gd1'
+            self.BASE_URI = 'https://api.ucloudbiz.olleh.com/gd1'
         else:
             if self.zone == 'd1':
-                self.BASE_URL = 'https://api.ucloudbiz.olleh.com/d1'
+                self.BASE_URI = 'https://api.ucloudbiz.olleh.com/d1'
             elif self.zone =='d2':
-                self.BASE_URL = 'https://api.ucloudbiz.olleh.com/d3'
+                self.BASE_URI = 'https://api.ucloudbiz.olleh.com/d3'
             elif self.zone == 'd3':
-                self.BASE_URL = 'https://api.ucloudbiz.olleh.com/d3'
+                self.BASE_URI = 'https://api.ucloudbiz.olleh.com/d3'
     def authenticate(self):
         # KTC API를 통해 토큰을 얻는 로직 (예: HTTP 요청)
-        URL = f'{self.BASE_URL}/identity/auth/tokens'
+        URL = f'{self.BASE_URI}/identity/auth/tokens'
         data = {
             "auth": {
                 "identity": {
@@ -67,15 +67,19 @@ class KTCAPI(CSPInterface):
         if self.token is None or time.time() >= self.token_expiry:
             self.authenticate()
         return self.token
-
-    def get_inventory(self):
+    def get_instances(self):
         token = self.get_token()
-        URL = f'{self.BASE_URL}/server/servers/detail'
+        URL = f'{self.BASE_URI}/server/servers/detail'
         headers = {'X-Auth-Token': token, 'Content-Type': 'application/json'}
         response = requests.get(URL, headers=headers).json()
-        # URL2 = f'{self.BASE_URL}/volume/{self.project_id}/volumes/detail'
-        URL3 = f'{self.BASE_URL}/nc/IpAddress'
-        networks = requests.get(URL3, headers=headers).json()['nc_listentpublicipsresponse']['publicips']
+        return response
+    def get_inventory(self):
+        token = self.get_token()
+        headers = {'X-Auth-Token': token, 'Content-Type': 'application/json'}
+        instances = self.get_instances()
+        # URL2 = f'{self.BASE_URI}/volume/{self.project_id}/volumes/detail'
+        NT_URL = f'{self.BASE_URI}/nc/IpAddress'
+        networks = requests.get(NT_URL, headers=headers).json()['nc_listentpublicipsresponse']['publicips']
         # privateip = [addr['addr']for server in response['servers'] for key in server['addresses'] for addr in server['addresses'][key]]
         pubipes = []
         inventories = []
@@ -84,7 +88,7 @@ class KTCAPI(CSPInterface):
                 pubipes.append(
                     {'pubip': ip['virtualips'][0]['ipaddress'], 'privateip': ip['virtualips'][0]['vmguestip']})
 
-        for server in response['servers']:
+        for server in instances['servers']:
             publicip = None
             for pubip in pubipes:
                 for key in server['addresses']:
@@ -106,3 +110,10 @@ class KTCAPI(CSPInterface):
             #     f.write(f"{server['name']} {vmgestip}\n")
             inventories.append(data)
         return inventories
+
+    def get_blockstorage(self):
+        token = self.get_token()
+        URL = f'{self.BASE_URI}/volume/{self.project_id}/volumes/detail'
+        headers = {'X-Auth-Token': token, 'Content-Type': 'application/json'}
+        response = requests.get(URL, headers=headers).json()
+

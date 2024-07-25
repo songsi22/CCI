@@ -18,17 +18,25 @@ class NHNAPI(CSPInterface):
         if self.gov:
             self.BASE_AUTH_URI = 'https://api-identity-infrastructure.gov-nhncloudservice.com'
             if self.zone == 'kr1':
-                self.BASE_URI = 'https://kr1-api-instance-infrastructure.gov-nhncloudservice.com'
+                self.VM_BASE_URI = 'https://kr1-api-instance-infrastructure.gov-nhncloudservice.com'
+                self.ST_BASE_URI = 'https://kr1-api-block-storage-infrastructure.gov-nhncloudservice.com'
             elif self.zone == 'kr2':
-                self.BASE_URI = 'https://kr2-api-instance-infrastructure.gov-nhncloudservice.com'
+                self.VM_BASE_URI = 'https://kr2-api-instance-infrastructure.gov-nhncloudservice.com'
+                self.ST_BASE_URI = 'https://kr2-api-block-storage-infrastructure.gov-nhncloudservice.com'
+
         else:
             self.BASE_AUTH_URI = 'https://api-identity-infrastructure.nhncloudservice.com'
             if self.zone == 'kr1':
-                self.BASE_URI = 'https://kr1-api-instance-infrastructure.nhncloudservice.com'
+                self.VM_BASE_URI = 'https://kr1-api-instance-infrastructure.nhncloudservice.com'
+                self.ST_BASE_URI = 'https://kr1-api-block-storage-infrastructure.nhncloudservice.com'
             elif self.zone == 'kr2':
-                self.BASE_URI = 'https://kr2-api-instance-infrastructure.nhncloudservice.com'
+                self.VM_BASE_URI = 'https://kr2-api-instance-infrastructure.nhncloudservice.com'
+                self.ST_BASE_URI = 'https://kr2-api-block-storage-infrastructure.nhncloudservice.com'
             elif self.zone == 'jp1':
-                self.BASE_URI = 'https://jp1-api-instance-infrastructure.nhncloudservice.com'
+                self.VM_BASE_URI = 'https://jp1-api-instance-infrastructure.nhncloudservice.com'
+                self.ST_BASE_URI = 'https://jp1-api-block-storage-infrastructure.nhncloudservice.com'
+
+
 
     def authenticate(self):
         # NHN API를 통해 토큰을 얻는 로직 (예: HTTP 요청)
@@ -59,35 +67,71 @@ class NHNAPI(CSPInterface):
             self.authenticate()
         return self.token
 
-    def get_inventory(self):
+    def get_instances(self):
         token = self.get_token()
-        URL = f'{self.BASE_URI}/v2/{self.tenantid}/servers/detail'
+        URL = f'{self.VM_BASE_URI}/v2/{self.tenantid}/servers/detail'
         headers = {'X-Auth-Token': token, 'Content-Type': 'application/json'}
         response = requests.get(URL, headers=headers)
         if response.status_code > 210:
-            print(response.json()['error']['message'])
+            raise Exception(f"Failed to get instances: {response.status_code} - {response.text}")
+            exit()
         else:
             response = response.json()
-            inventories = []
-            for server in response['servers']:
-                publicip = None
-                for address in server['addresses']:
-                    for addr in server['addresses'][address]:
-                        if addr['OS-EXT-IPS:type'] in 'floating':
-                            publicip = addr['addr']
-                        else:
-                            vmgestip = addr['addr']
-                    break
-                data = {
-                    'privateip': vmgestip,
-                    'availability_zone': server['OS-EXT-AZ:availability_zone'],
-                    'vm_state': server['OS-EXT-STS:vm_state'],
-                    'name': server['name'],
-                    'created': server['created'][:10],
-                    'publicip': publicip
-                }
-                # current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M")
-                # with open(f'./nhn-{current_time}-inventory', 'a+') as f:
-                #     f.write(f"{server['name']} {vmgestip}\n")
-                inventories.append(data)
-            return inventories
+            return response
+
+    def get_inventory(self):
+        instances = self.get_instances()
+        instances = instances.json()
+        inventories = []
+        for server in instances['servers']:
+            publicip = None
+            for address in server['addresses']:
+                for addr in server['addresses'][address]:
+                    if addr['OS-EXT-IPS:type'] in 'floating':
+                        publicip = addr['addr']
+                    else:
+                        vmgestip = addr['addr']
+                break
+            data = {
+                'privateip': vmgestip,
+                'availability_zone': server['OS-EXT-AZ:availability_zone'],
+                'vm_state': server['OS-EXT-STS:vm_state'],
+                'name': server['name'],
+                'created': server['created'][:10],
+                'publicip': publicip
+            }
+            # current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M")
+            # with open(f'./nhn-{current_time}-inventory', 'a+') as f:
+            #     f.write(f"{server['name']} {vmgestip}\n")
+            inventories.append(data)
+        return inventories
+
+    def get_blockstorage(self):
+        token = self.get_token()
+        URL = f'{self.ST_BASE_URI}/v2/{self.tenantid}/volumes/detail'
+        headers = {'X-Auth-Token': token, 'Content-Type': 'application/json'}
+        response = requests.get(URL, headers=headers).json()
+        return response
+
+    def filter(self):
+        instances = self.get_inventory()
+        volumes = self.get_blockstorage()
+
+        import pdb;pdb.set_trace()
+        instance_volumes = []
+
+        for volume in volumes:
+            volume_info = {
+                "volume_type": volume["volume_type"],
+                "size": volume["size"],
+                "attachments": []
+            }
+            for attachment in volume.get("attachments", []):
+                for instance in instances:
+                    if attachment["server_id"] == instance["id"]:
+                        volume_info["attachments"].append({
+                            "device": attachment["device"],
+                            "instance_id": instance["id"],
+                            "instance_name": instance["name"]
+                        })
+            instance_volumes.append(volume_info)
