@@ -1,7 +1,7 @@
 import json
 import datetime
 import requests
-
+import re
 from csp_interface import CSPInterface
 import time
 
@@ -35,8 +35,6 @@ class NHNAPI(CSPInterface):
             elif self.zone == 'jp1':
                 self.VM_BASE_URI = 'https://jp1-api-instance-infrastructure.nhncloudservice.com'
                 self.ST_BASE_URI = 'https://jp1-api-block-storage-infrastructure.nhncloudservice.com'
-
-
 
     def authenticate(self):
         # NHN API를 통해 토큰을 얻는 로직 (예: HTTP 요청)
@@ -81,7 +79,7 @@ class NHNAPI(CSPInterface):
 
     def get_inventory(self):
         instances = self.get_instances()
-        instances = instances.json()
+        instances = instances
         inventories = []
         for server in instances['servers']:
             publicip = None
@@ -113,25 +111,32 @@ class NHNAPI(CSPInterface):
         response = requests.get(URL, headers=headers).json()
         return response
 
-    def filter(self):
-        instances = self.get_inventory()
-        volumes = self.get_blockstorage()
+    def block_filter(self):
+        instances = self.get_instances()['servers']
+        volumes = self.get_blockstorage()['volumes']
 
-        import pdb;pdb.set_trace()
-        instance_volumes = []
+        instance_volumes = {}
+
+        for instance in instances:
+            instance_volumes[instance["id"]] = {
+                "instance_name": instance["name"],
+                "volumes": []
+            }
 
         for volume in volumes:
+            volume_type_match = re.findall(r'\b\w*\s?(HDD|SSD)\b', volume["volume_type"])
+            volume_type = volume_type_match[0] if volume_type_match else "Unknown"
             volume_info = {
-                "volume_type": volume["volume_type"],
-                "size": volume["size"],
-                "attachments": []
+                "volume_type": volume_type,
+                "size": volume["size"]
             }
+
             for attachment in volume.get("attachments", []):
-                for instance in instances:
-                    if attachment["server_id"] == instance["id"]:
-                        volume_info["attachments"].append({
-                            "device": attachment["device"],
-                            "instance_id": instance["id"],
-                            "instance_name": instance["name"]
-                        })
-            instance_volumes.append(volume_info)
+                instance_id = attachment["server_id"]
+                if instance_id in instance_volumes:
+                    instance_volumes[instance_id]["volumes"].append({
+                        "device": attachment["device"],
+                        "volume_type": volume_info["volume_type"],
+                        "size": volume_info["size"]
+                    })
+        return instance_volumes
