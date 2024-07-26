@@ -1,27 +1,35 @@
 from openpyxl import load_workbook
 from datetime import datetime
 
-def data_to_excel(inventories,csp_type):
+
+def data_to_excel(inventories, csp_type):
     wb = load_workbook('./template.xlsx')
     ws = wb.active
-
-    for i,inventory in enumerate(inventories):
-        ws[f'A{i + 4}'].value = inventory['availability_zone']# zone
-        # ws[f'B{i + 4}'].value = inventory['name']  # name
-        for j in inventory['volumes']:
-            if j['bootable']:
-                if j['volume_type'] == 'HDD':
-                    ws[f'F{i + 4}'].value = j['size']  # HDD size
+    for i, inventory in enumerate(inventories):
+        ext_ssd = 0
+        ext_hdd = 0
+        ws[f'A{i + 4}'].value = inventory['availability_zone']  # zone
+        ws[f'B{i + 4}'].value = inventory['name']  # name
+        for volume in inventory['volumes']:
+            if volume['bootable']:
+                if volume['volume_type'] == 'HDD':
+                    ws[f'F{i + 4}'].value = volume['size']  # HDD size
                 else:
-                    ws[f'G{i + 4}'].value = j['size']  # SSD size
+                    ws[f'G{i + 4}'].value = volume['size']  # SSD size
             else:
-                if j['volume_type'] == 'HDD':
-                    ws[f'I{i + 4}'].value = j['size']  # ext HDD size
+                if volume['volume_type'] == 'HDD':
+                    ext_hdd += volume['size']
                 else:
-                    ws[f'J{i + 4}'].value = j['size']  # ext SSD size
-        ws[f'M{i + 4}'].value = inventory['publicip']# pub ip
-        # ws[f'N{i + 4}'].value = inventory['privateip']# pri ip ## 향후 주석 처리 예정?
-        ws[f'O{i + 4}'].value = inventory['created']# created
-        ws[f'P{i + 4}'].value = inventory['vm_state'] # vm state
+                    ext_ssd += volume['size']
+        if ext_ssd == 0 and ext_hdd == 0:
+            pass
+        elif ext_ssd != 0:
+            ws[f'J{i + 4}'].value = ext_ssd  # ext ssd
+        else:
+            ws[f'I{i + 4}'].value = ext_hdd  # ext ssd
+        ws[f'M{i + 4}'].value = inventory['publicip']  # pub ip
+        ws[f'N{i + 4}'].value = inventory['privateip']  # pri ip ## 향후 주석 처리 예정?
+        ws[f'O{i + 4}'].value = inventory['created']  # created
+        ws[f'P{i + 4}'].value = inventory['vm_state']  # vm state
     create_time = datetime.now().strftime("%Y%m%d-%H%M")
-    wb.save(f'./{csp_type}inventory-{create_time}.xlsx')
+    wb.save(f'./{csp_type}_inventory_{create_time}.xlsx')
