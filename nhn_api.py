@@ -78,10 +78,12 @@ class NHNAPI(CSPInterface):
             return response
 
     def get_inventory(self):
-        instances = self.get_instances()
-        instances = instances
+        instances = self.get_instances()['servers']
+        volumes = self.get_blockstorage()['volumes']
+        instance_volumes = self.block_filter(instances, volumes)
+
         inventories = []
-        for server in instances['servers']:
+        for server in instances:
             publicip = None
             for address in server['addresses']:
                 for addr in server['addresses'][address]:
@@ -98,6 +100,8 @@ class NHNAPI(CSPInterface):
                 'created': server['created'][:10],
                 'publicip': publicip
             }
+            if server['id'] in instance_volumes:
+                data.update({"volumes": instance_volumes[server['id']]['volumes']})
             # current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M")
             # with open(f'./nhn-{current_time}-inventory', 'a+') as f:
             #     f.write(f"{server['name']} {vmgestip}\n")
@@ -111,9 +115,9 @@ class NHNAPI(CSPInterface):
         response = requests.get(URL, headers=headers).json()
         return response
 
-    def block_filter(self):
-        instances = self.get_instances()['servers']
-        volumes = self.get_blockstorage()['volumes']
+    def block_filter(self, instances, volumes):
+        instances = instances
+        volumes = volumes
 
         instance_volumes = {}
 

@@ -44,11 +44,15 @@ class NCPAPI(CSPInterface):
             response = response.json()
             return response
 
-    def get_inventory(self, uri):
-        instances = self.get_instances('getServerInstanceList')
+    def get_inventory(self):
+        instances = self.get_instances('getServerInstanceList')['getServerInstanceListResponse']['serverInstanceList']
         networks = self.get_network('getNetworkInterfaceList')
+        volumes = self.get_blockstorage('getBlockStorageInstanceList')['getBlockStorageInstanceListResponse'][
+            'blockStorageInstanceList']
+        instance_volumes = self.block_filter(instances, volumes)
+
         inventories = []
-        for server in instances['getServerInstanceListResponse']['serverInstanceList']:
+        for server in instances:
             if server['publicIp'] == '':
                 publicip = None
             else:
@@ -65,6 +69,8 @@ class NCPAPI(CSPInterface):
                 'created': server['createDate'][:10],
                 'publicip': publicip
             }
+            if server['serverInstanceNo'] in instance_volumes:
+                data.update({"volumes": instance_volumes[server['serverInstanceNo']]['volumes']})
             # current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M")
             # with open(f'./ncp-{current_time}-inventory', 'a+') as f:
             #     f.write(f"{server['serverName']} {vmgestip}\n")
@@ -89,10 +95,9 @@ class NCPAPI(CSPInterface):
         response = requests.get(f'{self.BASE_URI}/vserver/v2/{uri}?responseFormatType=json', headers=headers).json()
         return response
 
-    def block_filter(self):
-        instances = self.get_instances('getServerInstanceList')['getServerInstanceListResponse']['serverInstanceList']
-        volumes = self.get_blockstorage('getBlockStorageInstanceList')['getBlockStorageInstanceListResponse'][
-            'blockStorageInstanceList']
+    def block_filter(self, instances, volumes):
+        instances = instances
+        volumes = volumes
 
         instance_volumes = {}
 

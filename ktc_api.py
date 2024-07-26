@@ -80,8 +80,9 @@ class KTCAPI(CSPInterface):
     def get_inventory(self):
         token = self.get_token()
         headers = {'X-Auth-Token': token, 'Content-Type': 'application/json'}
-        instances = self.get_instances()
-        # URL2 = f'{self.BASE_URI}/volume/{self.project_id}/volumes/detail'
+        instances = self.get_instances()['servers']
+        volumes = self.get_blockstorage()['volumes']
+        instance_volumes = self.block_filter(instances, volumes)
         NT_URL = f'{self.BASE_URI}/nc/IpAddress'
         networks = requests.get(NT_URL, headers=headers).json()['nc_listentpublicipsresponse']['publicips']
         # privateip = [addr['addr']for server in response['servers'] for key in server['addresses'] for addr in server['addresses'][key]]
@@ -92,7 +93,7 @@ class KTCAPI(CSPInterface):
                 pubipes.append(
                     {'pubip': ip['virtualips'][0]['ipaddress'], 'privateip': ip['virtualips'][0]['vmguestip']})
 
-        for server in instances['servers']:
+        for server in instances:
             publicip = None
             for pubip in pubipes:
                 for key in server['addresses']:
@@ -109,6 +110,9 @@ class KTCAPI(CSPInterface):
                 'created': server['created'][:10],
                 'publicip': publicip
             }
+
+            if server['id'] in instance_volumes:
+                data.update({"volumes": instance_volumes[server['id']]['volumes']})
             # current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M")
             # with open(f'./kt-{current_time}inventory', 'a+') as f:
             #     f.write(f"{server['name']} {vmgestip}\n")
@@ -122,9 +126,9 @@ class KTCAPI(CSPInterface):
         response = requests.get(URL, headers=headers).json()
         return response
 
-    def block_filter(self):
-        instances = self.get_instances()['servers']
-        volumes = self.get_blockstorage()['volumes']
+    def block_filter(self, instances, volumes):
+        instances = instances
+        volumes = volumes
 
         instance_volumes = {}
 
