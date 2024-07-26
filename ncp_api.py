@@ -108,15 +108,16 @@ class NCPAPI(CSPInterface):
             }
 
         for volume in volumes:
-            volume_type_match = re.findall(r'\b\w*\s?(HDD|SSD)\b', volume["blockStorageDiskDetailType"]['code'])
+            volume_type_match = re.findall(r'\b\w*\s?(HDD|SSD)\b', volume["blockStorageDiskDetailType"]["code"])
             volume_type = volume_type_match[0] if volume_type_match else "Unknown"
-            instance_id = volume['serverInstanceNo']
+            instance_id = volume["serverInstanceNo"]
             if instance_id in instance_volumes:
                 instance_volumes[instance_id]["volumes"].append(
                     {
-                        "device": volume['deviceName'],
+                        "device": volume["deviceName"],
                         "volume_type": volume_type,
-                        "size": volume["blockStorageSize"] // 1024 // 1024 // 1024
+                        "size": volume["blockStorageSize"] // 1024 // 1024 // 1024,
+                        "bootable": True if volume["blockStorageType"]["code"] == "BASIC" else False
                     }
                 )
         return instance_volumes

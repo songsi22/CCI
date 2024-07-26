@@ -95,7 +95,7 @@ class NHNAPI(CSPInterface):
             data = {
                 'privateip': vmgestip,
                 'availability_zone': server['OS-EXT-AZ:availability_zone'],
-                'vm_state': server['OS-EXT-STS:vm_state'],
+                'vm_state': 'RUNNING' if server['OS-EXT-STS:vm_state'] == 'active' else 'STOP',
                 'name': server['name'],
                 'created': server['created'][:10],
                 'publicip': publicip
@@ -141,6 +141,7 @@ class NHNAPI(CSPInterface):
                     instance_volumes[instance_id]["volumes"].append({
                         "device": attachment["device"],
                         "volume_type": volume_info["volume_type"],
-                        "size": volume_info["size"]
+                        "size": volume_info["size"],
+                        "bootable": True if volume["bootable"] == 'true' else False
                     })
         return instance_volumes

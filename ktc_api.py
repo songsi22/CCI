@@ -103,7 +103,7 @@ class KTCAPI(CSPInterface):
             data = {
                 'privateip': vmgestip,
                 'availability_zone': server['OS-EXT-AZ:availability_zone'],
-                'vm_state': server['OS-EXT-STS:vm_state'],
+                'vm_state': 'RUNNING' if server['OS-EXT-STS:vm_state'] == 'active' else 'STOP',
                 'vcpus': server['flavor']['vcpus'],
                 'ram': server['flavor']['ram'] // 1024,
                 'name': server['name'],
@@ -152,7 +152,8 @@ class KTCAPI(CSPInterface):
                     instance_volumes[instance_id]["volumes"].append({
                         "device": attachment["device"],
                         "volume_type": volume_info["volume_type"],
-                        "size": volume_info["size"]
+                        "size": volume_info["size"],
+                        "bootable": True if volume["bootable"] == 'true' else False
                     })
-
+        import pdb;pdb.set_trace()
         return instance_volumes
