@@ -155,5 +155,4 @@ class KTCAPI(CSPInterface):
                         "size": volume_info["size"],
                         "bootable": True if volume["bootable"] == 'true' else False
                     })
-        import pdb;pdb.set_trace()
         return instance_volumes
