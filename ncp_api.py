@@ -62,7 +62,7 @@ class NCPAPI(CSPInterface):
             data = {
                 'privateip': vmgestip,
                 'availability_zone': server['zoneCode'],
-                'vm_state': server['serverInstanceStatus']['code'],
+                'vm_state': 'RUNNING' if server['serverInstanceStatus']['code'] == 'RUN' else 'STOP',
                 'vcpus': server['cpuCount'],
                 'ram': server['memorySize'] // 1024 // 1024 // 1024,
                 'name': server['serverName'],
