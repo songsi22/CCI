@@ -1,4 +1,5 @@
 import datetime
+import re
 import json
 import requests
 from csp_interface import CSPInterface
@@ -19,10 +20,11 @@ class KTCAPI(CSPInterface):
         else:
             if self.zone == 'd1':
                 self.BASE_URI = 'https://api.ucloudbiz.olleh.com/d1'
-            elif self.zone =='d2':
+            elif self.zone == 'd2':
                 self.BASE_URI = 'https://api.ucloudbiz.olleh.com/d3'
             elif self.zone == 'd3':
                 self.BASE_URI = 'https://api.ucloudbiz.olleh.com/d3'
+
     def authenticate(self):
         # KTC API를 통해 토큰을 얻는 로직 (예: HTTP 요청)
         URL = f'{self.BASE_URI}/identity/auth/tokens'
@@ -67,12 +69,14 @@ class KTCAPI(CSPInterface):
         if self.token is None or time.time() >= self.token_expiry:
             self.authenticate()
         return self.token
+
     def get_instances(self):
         token = self.get_token()
         URL = f'{self.BASE_URI}/server/servers/detail'
         headers = {'X-Auth-Token': token, 'Content-Type': 'application/json'}
         response = requests.get(URL, headers=headers).json()
         return response
+
     def get_inventory(self):
         token = self.get_token()
         headers = {'X-Auth-Token': token, 'Content-Type': 'application/json'}
@@ -116,4 +120,35 @@ class KTCAPI(CSPInterface):
         URL = f'{self.BASE_URI}/volume/{self.project_id}/volumes/detail'
         headers = {'X-Auth-Token': token, 'Content-Type': 'application/json'}
         response = requests.get(URL, headers=headers).json()
+        return response
 
+    def block_filter(self):
+        instances = self.get_instances()['servers']
+        volumes = self.get_blockstorage()['volumes']
+
+        instance_volumes = {}
+
+        for instance in instances:
+            instance_volumes[instance["id"]] = {
+                "instance_name": instance["name"],
+                "volumes": []
+            }
+
+        for volume in volumes:
+            volume_type_match = re.findall(r'\b\w*\s?(HDD|SSD)\b', volume["volume_type"])
+            volume_type = volume_type_match[0] if volume_type_match else "Unknown"
+            volume_info = {
+                "volume_type": volume_type,
+                "size": volume["size"]
+            }
+
+            for attachment in volume.get("attachments", []):
+                instance_id = attachment["server_id"]
+                if instance_id in instance_volumes:
+                    instance_volumes[instance_id]["volumes"].append({
+                        "device": attachment["device"],
+                        "volume_type": volume_info["volume_type"],
+                        "size": volume_info["size"]
+                    })
+
+        return instance_volumes
