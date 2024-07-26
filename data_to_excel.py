@@ -1,6 +1,7 @@
 from openpyxl import load_workbook
+from datetime import datetime
 
-def data_to_excel(inventories):
+def data_to_excel(inventories,csp_type):
     wb = load_workbook('./template.xlsx')
     ws = wb.active
 
@@ -22,4 +23,5 @@ def data_to_excel(inventories):
         # ws[f'N{i + 4}'].value = inventory['privateip']# pri ip ## 향후 주석 처리 예정?
         ws[f'O{i + 4}'].value = inventory['created']# created
         ws[f'P{i + 4}'].value = inventory['vm_state'] # vm state
-    wb.save('./NHNinventory.xlsx')
+    create_time = datetime.now().strftime("%Y%m%d-%H%M")
+    wb.save(f'./{csp_type}inventory-{create_time}.xlsx')

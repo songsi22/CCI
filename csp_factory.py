@@ -6,6 +6,8 @@ from ncp_api import NCPAPI
 
 
 class CSPFactory:
+    def __init__(self, csp_type):
+        self.csp_type = csp_type
     @staticmethod
     def get_csp(csp_type, **kwargs):
         if csp_type == "KTC":
