@@ -1,8 +1,13 @@
 from openpyxl import load_workbook
+from openpyxl.styles import Border, Side, Alignment
 from datetime import datetime
-
+import string
 
 def data_to_excel(inventories, csp_type):
+    thin_border = Border(left=Side(style='thin'),
+                         right=Side(style='thin'),
+                         top=Side(style='thin'),
+                         bottom=Side(style='thin'))
     wb = load_workbook('./template.xlsx')
     ws = wb.active
     for i, inventory in enumerate(inventories):
@@ -31,5 +36,8 @@ def data_to_excel(inventories, csp_type):
         ws[f'N{i + 4}'].value = inventory['privateip']  # pri ip ## 향후 주석 처리 예정?
         ws[f'O{i + 4}'].value = inventory['created']  # created
         ws[f'P{i + 4}'].value = inventory['vm_state']  # vm state
+        for uppercase in string.ascii_uppercase[:-10]:
+            ws[f'{uppercase}{i + 4}'].border = thin_border
+            ws[f'{uppercase}{i + 4}'].alignment = Alignment(horizontal='center', vertical='center')
     create_time = datetime.now().strftime("%Y%m%d-%H%M")
     wb.save(f'./{csp_type}_inventory_{create_time}.xlsx')
