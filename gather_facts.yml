@@ -1,0 +1,37 @@
+---
+- name: Gather Ansible facts and save to json
+  hosts: all
+  gather_facts: yes
+  tasks:
+    - name: Gather system information
+      set_fact:
+        system_info: >
+          {{
+            {
+              ansible_default_ipv4.address: {
+              'hostname': ansible_hostname,
+              'distribution': ansible_distribution ~ ' ' ~ ansible_distribution_version,
+              'all_ipv4_addresses': ansible_all_ipv4_addresses | default([]),
+              'cpu_cores': ansible_processor_cores,
+              'total_memory': (ansible_memtotal_mb | float / 1024) | round | int,
+              'total_swap': (ansible_swaptotal_mb | float / 1024) | round | int,
+              'mounts': ansible_mounts | json_query('[].{mount: mount, device: device, size_total: size_total}')
+              }
+            }
+          }}
+
+    - name: Aggregate system information on localhost
+      delegate_to: localhost
+      run_once: true
+      set_fact:
+        all_system_info: "{{ all_system_info | default([]) + [ hostvars[item].system_info ] }}"
+      with_items: "{{ groups['all'] }}"
+      loop_control:
+        label: "{{ item }}"
+
+    - name: Save all collected facts to JSON file
+      delegate_to: localhost
+      run_once: true
+      copy:
+        content: "{{ all_system_info | to_nice_json }}"
+        dest: "./all_system_info.json"
