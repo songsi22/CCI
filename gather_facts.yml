@@ -24,7 +24,7 @@
       delegate_to: localhost
       run_once: true
       set_fact:
-        all_system_info: "{{ all_system_info | default([]) + [ hostvars[item].system_info ] }}"
+        all_system_info: "{{ all_system_info | default({}) | combine(hostvars[item].system_info) }}"
       with_items: "{{ groups['all'] }}"
       loop_control:
         label: "{{ item }}"
