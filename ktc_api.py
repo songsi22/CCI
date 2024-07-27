@@ -101,7 +101,7 @@ class KTCAPI(CSPInterface):
                     if vmgestip in pubip['privateip']:
                         publicip = pubip['pubip']
             data = {
-                'privateip': vmgestip,
+                vmgestip: {
                 'availability_zone': server['OS-EXT-AZ:availability_zone'],
                 'vm_state': 'RUNNING' if server['OS-EXT-STS:vm_state'] == 'active' else 'STOP',
                 'vcpus': server['flavor']['vcpus'],
@@ -109,10 +109,11 @@ class KTCAPI(CSPInterface):
                 'name': server['name'],
                 'created': server['created'][:10],
                 'publicip': publicip
+                }
             }
 
             if server['id'] in instance_volumes:
-                data.update({"volumes": instance_volumes[server['id']]['volumes']})
+                data[vmgestip].update({"volumes": instance_volumes[server['id']]['volumes']})
             # current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M")
             # with open(f'./kt-{current_time}inventory', 'a+') as f:
             #     f.write(f"{server['name']} {vmgestip}\n")

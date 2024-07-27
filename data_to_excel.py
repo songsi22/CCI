@@ -13,6 +13,8 @@ def data_to_excel(inventories, csp_type):
     for i, inventory in enumerate(inventories):
         ext_ssd = 0
         ext_hdd = 0
+        vmguestip = next(iter(inventory))
+        inventory = inventory[vmguestip]
         ws[f'A{i + 4}'].value = inventory['availability_zone']  # zone
         ws[f'B{i + 4}'].value = inventory['name']  # name
         for volume in inventory['volumes']:
@@ -33,7 +35,7 @@ def data_to_excel(inventories, csp_type):
         else:
             ws[f'I{i + 4}'].value = ext_hdd  # ext ssd
         ws[f'M{i + 4}'].value = inventory['publicip']  # pub ip
-        ws[f'N{i + 4}'].value = inventory['privateip']  # pri ip ## 향후 주석 처리 예정?
+        ws[f'N{i + 4}'].value = vmguestip  # pri ip ## 향후 주석 처리 예정?
         ws[f'O{i + 4}'].value = inventory['created']  # created
         ws[f'P{i + 4}'].value = inventory['vm_state']  # vm state
         for uppercase in string.ascii_uppercase[:-10]:

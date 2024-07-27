@@ -60,7 +60,7 @@ class NCPAPI(CSPInterface):
             vmgestip = next((item['ip'] for item in networks if item['instanceNo'] == server['serverInstanceNo']),
                             None)
             data = {
-                'privateip': vmgestip,
+                vmgestip: {
                 'availability_zone': server['zoneCode'],
                 'vm_state': 'RUNNING' if server['serverInstanceStatus']['code'] == 'RUN' else 'STOP',
                 'vcpus': server['cpuCount'],
@@ -68,9 +68,10 @@ class NCPAPI(CSPInterface):
                 'name': server['serverName'],
                 'created': server['createDate'][:10],
                 'publicip': publicip
+                }
             }
             if server['serverInstanceNo'] in instance_volumes:
-                data.update({"volumes": instance_volumes[server['serverInstanceNo']]['volumes']})
+                data[vmgestip].update({"volumes": instance_volumes[server['serverInstanceNo']]['volumes']})
             # current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M")
             # with open(f'./ncp-{current_time}-inventory', 'a+') as f:
             #     f.write(f"{server['serverName']} {vmgestip}\n")
