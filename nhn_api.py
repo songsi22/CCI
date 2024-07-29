@@ -37,7 +37,6 @@ class NHNAPI(CSPInterface):
                 self.ST_BASE_URI = 'https://jp1-api-block-storage-infrastructure.nhncloudservice.com'
 
     def authenticate(self):
-        # NHN API를 통해 토큰을 얻는 로직 (예: HTTP 요청)
         URL = f'{self.BASE_AUTH_URI}/v2.0/tokens'
         data = {
             "auth": {

@@ -26,7 +26,6 @@ class KTCAPI(CSPInterface):
                 self.BASE_URI = 'https://api.ucloudbiz.olleh.com/d3'
 
     def authenticate(self):
-        # KTC API를 통해 토큰을 얻는 로직 (예: HTTP 요청)
         URL = f'{self.BASE_URI}/identity/auth/tokens'
         data = {
             "auth": {
@@ -85,7 +84,6 @@ class KTCAPI(CSPInterface):
         instance_volumes = self.block_filter(instances, volumes)
         NT_URL = f'{self.BASE_URI}/nc/IpAddress'
         networks = requests.get(NT_URL, headers=headers).json()['nc_listentpublicipsresponse']['publicips']
-        # privateip = [addr['addr']for server in response['servers'] for key in server['addresses'] for addr in server['addresses'][key]]
         pubipes = []
         inventories = []
         for ip in networks:
