@@ -17,6 +17,8 @@ def data_to_excel(inventories, csp_type):
         inventory = inventory[vmguestip]
         ws[f'A{i + 4}'].value = inventory['availability_zone']  # zone
         ws[f'B{i + 4}'].value = inventory['name']  # name
+        ws[f'D{i + 4}'].value = inventory['vcpus']  # vcpu
+        ws[f'E{i + 4}'].value = inventory['ram']  # ram
         for volume in inventory['volumes']:
             if volume['bootable']:
                 if volume['volume_type'] == 'HDD':
