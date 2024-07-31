@@ -83,7 +83,6 @@ class NHNAPI(CSPInterface):
         flavors = requests.get(URL, headers=headers).json()['flavors']
         for flavor in flavors:
             if flavor['id'] in flavor_id:
-                print(f'{flavor['name']}')
                 return flavor['name'].split('.')[1]
 
 
