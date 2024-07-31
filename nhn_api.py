@@ -76,13 +76,25 @@ class NHNAPI(CSPInterface):
             response = response.json()
             return response
 
+    def filter_flavors(self,flavor_id):
+        token = self.get_token()
+        URL = f'{self.VM_BASE_URI}/v2/{self.tenantid}/flavors'
+        headers = {'X-Auth-Token': token, 'Content-Type': 'application/json'}
+        flavors = requests.get(URL, headers=headers).json()['flavors']
+        for flavor in flavors:
+            if flavor['id'] in flavor_id:
+                print(f'{flavor['name']}')
+                return flavor['name'].split('.')[1]
+
+
+
     def get_inventory(self):
         instances = self.get_instances()['servers']
         volumes = self.get_blockstorage()['volumes']
         instance_volumes = self.block_filter(instances, volumes)
-
         inventories = []
         for server in instances:
+            type = self.filter_flavors(server['flavor']['id'])
             publicip = None
             for address in server['addresses']:
                 for addr in server['addresses'][address]:
@@ -91,10 +103,16 @@ class NHNAPI(CSPInterface):
                     else:
                         vmgestip = addr['addr']
                 break
+            match = re.compile(r'c(\d+)m(\d+)').match(type)
+            if type:
+                cpu = match.group(1)
+                mem = match.group(2)
             data = {
                 vmgestip: {
                 'availability_zone': server['OS-EXT-AZ:availability_zone'],
                 'vm_state': 'RUNNING' if server['OS-EXT-STS:vm_state'] == 'active' else 'STOP',
+                'vcpus': cpu,
+                'ram': mem,
                 'name': server['name'],
                 'created': server['created'][:10],
                 'publicip': publicip
