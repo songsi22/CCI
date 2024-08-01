@@ -37,11 +37,11 @@ def data_to_excel(inventories, csp_type, customer=''):
         if ext_ssd == 0 and ext_hdd == 0:
             pass
         elif ext_ssd != 0:
-            ws[f'J{i + 5}'].value = ext_ssd  # ext ssd
+            ws[f'J{i + 5}'].value = ext_ssd  # ext SSD total(sum) size
         else:
-            ws[f'I{i + 5}'].value = ext_hdd  # ext ssd
+            ws[f'I{i + 5}'].value = ext_hdd  # ext HDD total(sum) size
         ws[f'M{i + 5}'].value = inventory['publicip']  # pub ip
-        ws[f'N{i + 5}'].value = vmguestip  # pri ip ## 향후 주석 처리 예정?
+        ws[f'N{i + 5}'].value = vmguestip  # pri ip
         ws[f'O{i + 5}'].value = inventory['created']  # created
         ws[f'P{i + 5}'].value = inventory['vm_state']  # vm state
         for uppercase in string.ascii_uppercase[:-10]:
