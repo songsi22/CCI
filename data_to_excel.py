@@ -47,5 +47,5 @@ def data_to_excel(inventories, csp_type, customer=''):
         for uppercase in string.ascii_uppercase[:-10]:
             ws[f'{uppercase}{i + 5}'].border = thin_border
             ws[f'{uppercase}{i + 5}'].alignment = Alignment(horizontal='center', vertical='center')
-    create_time_in_file = datetime.now().strftime("%Y%m%d-%H%M")
+    create_time_in_file = datetime.now().strftime("%Y%m%d")
     wb.save(f'./{customer}{csp_type}_inventory_{create_time_in_file}.xlsx')
