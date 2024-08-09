@@ -48,4 +48,6 @@ def data_to_excel(inventories, csp_type, customer=''):
             ws[f'{uppercase}{i + 5}'].border = thin_border
             ws[f'{uppercase}{i + 5}'].alignment = Alignment(horizontal='center', vertical='center')
     create_time_in_file = datetime.now().strftime("%Y%m%d")
-    wb.save(f'./{customer}{csp_type}_inventory_{create_time_in_file}.xlsx')
+    wb.save(f'./part3_files/{customer}{csp_type}_inventory_{create_time_in_file}.xlsx')
+    with open(f'part3_custom/{customer}','a+',encoding='utf-8') as f:
+        f.write(f'{customer}{csp_type}_inventory_{create_time_in_file}.xlsx\n')
