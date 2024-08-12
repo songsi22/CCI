@@ -4,7 +4,7 @@ from datetime import datetime
 import string
 
 
-def data_to_excel(inventories, csp_type, customer=''):
+def data_to_excel(inventories, csp_type, path, cday, customer=''):
     thin_border = Border(left=Side(style='thin'),
                          right=Side(style='thin'),
                          top=Side(style='thin'),
@@ -47,7 +47,13 @@ def data_to_excel(inventories, csp_type, customer=''):
         for uppercase in string.ascii_uppercase[:-10]:
             ws[f'{uppercase}{i + 5}'].border = thin_border
             ws[f'{uppercase}{i + 5}'].alignment = Alignment(horizontal='center', vertical='center')
-    create_time_in_file = datetime.now().strftime("%Y%m%d")
-    wb.save(f'./part3_files/{customer}{csp_type}_inventory_{create_time_in_file}.xlsx')
-    with open(f'part3_custom/{customer}','a+',encoding='utf-8') as f:
-        f.write(f'{customer}{csp_type}_inventory_{create_time_in_file}.xlsx\n')
+    wb.save(f'./{path}_files/{customer}{csp_type}_inventory_{cday}.xlsx')
+
+
+def write_to_file(type, csp_type, customer, path, cday, ctime, filename=''):
+    if type == 'API':
+        with open(f'{path}_custom/{customer}', 'a+', encoding='utf-8') as f:
+            f.write(f'{customer}{csp_type}_inventory_{cday}.xlsx,{cday}{ctime}\n')
+    else:
+        with open(f'{path}_custom/{customer}', 'a+', encoding='utf-8') as f:
+            f.write(f'{filename},{cday}{ctime}\n')
