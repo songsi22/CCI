@@ -153,6 +153,10 @@ def manage_customer(session: str):
 
 def front(session: str):
     session_username = session
+    if not os.path.exists(f"{st.session_state['username']}_custom"):
+        os.makedirs(f"{st.session_state['username']}_custom")
+    if not os.path.exists(f"{st.session_state['username']}_files"):
+        os.makedirs(f"{st.session_state['username']}_files")
     customers = os.listdir(f'{session_username}_custom')
     options = st.multiselect(options=customers, label='고객사 선택', default=customers, placeholder='고객사를 선택하세요.', )
     df = None
