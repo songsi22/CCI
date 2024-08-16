@@ -3,5 +3,5 @@ requests
 pandas
 streamlit-keyup
 streamlit-option-menu
-streamlit-authenticator
+streamlit-authenticator==0.3.2
 pyyaml
