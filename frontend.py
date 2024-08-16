@@ -8,7 +8,7 @@ import streamlit as st
 import pandas as pd
 from st_keyup import st_keyup
 from data_to_excel import data_to_excel, write_to_file
-from read_inventory import read_template, read_customer_file
+from read_inventory import read_template
 import streamlit_authenticator as stauth
 import yaml
 from yaml.loader import SafeLoader
@@ -37,8 +37,7 @@ def manage_inventory(session: str):
         if customers:
             name = st.radio(label='고객명', options=customers,horizontal=True)
             csp_type = st.radio(label='CSP 선택',
-                                options=['민간NCP', '공공NCP', '민간KTC[@D]', '공공KTC[@D]', '민간NHN', '공공NHN'])
-            st.write('<style>div.row-widget.stRadio > div{flex-direction:row;}</style>', unsafe_allow_html=True)
+                                options=['민간NCP', '공공NCP', '민간KTC[@D]', '공공KTC[@D]', '민간NHN', '공공NHN'],horizontal=True)
             if 'NCP' in csp_dict[csp_type]:
                 access_key = st.text_input('Access Key', placeholder='API access Key')
                 secret_key = st.text_input('Secret Key', placeholder='API secret Key', type="password")
@@ -56,7 +55,7 @@ def manage_inventory(session: str):
                         write_to_file(type='API', customer=name, csp_type=csp_dict[csp_type],
                                       path=f'{session_username}',
                                       cday=create_day_in_file, ctime=create_time_in_file)
-                        st.write(f'{name} 등록 완료. 인벤토리에서 확인하세요')
+                        st.success(f'{name} 등록 완료. 인벤토리에서 확인하세요')
                         st.rerun()
             elif 'NHN' in csp_dict[csp_type]:
                 tenantid = st.text_input('Tenant ID', placeholder='API endpoint tenantid')
@@ -76,7 +75,7 @@ def manage_inventory(session: str):
                         write_to_file(type='API', customer=name, csp_type=csp_dict[csp_type],
                                       path=f'{session_username}',
                                       cday=create_day_in_file, ctime=create_time_in_file)
-                        st.write(f'{name} 등록 완료. 인벤토리에서 확인하세요')
+                        st.success(f'{name} 등록 완료. 인벤토리에서 확인하세요')
                         st.rerun()
             elif 'KTC' in csp_dict[csp_type]:
                 username = st.text_input('Username', placeholder='root@mail.com')
@@ -94,10 +93,10 @@ def manage_inventory(session: str):
                         write_to_file(type='API', customer=name, csp_type=csp_dict[csp_type],
                                       path=f'{session_username}',
                                       cday=create_day_in_file, ctime=create_time_in_file)
-                        st.write(f'{name} 등록 완료. 인벤토리에서 확인하세요')
+                        st.success(f'{name} 등록 완료. 인벤토리에서 확인하세요')
                         # st.rerun()
         else:
-            st.write('등록된 고객이 없습니다.')
+            st.warning('등록된 고객이 없습니다.')
     with manual:
         visible = True
 
@@ -128,21 +127,20 @@ def manage_inventory(session: str):
 
 def manage_customer(session: str):
     session_username = session
-    customers = os.listdir(f'{session_username}_custom')
     create, delete = st.tabs(['등록', '삭제'])
     with create:
         visible = True
         customer = st.text_input('고객사명', key='customer')
         if customer:
             if os.path.exists(f'{session_username}_custom/{customer}'):
-                st.write(f'{customer}은 존재합니다.')
+                st.warning(f'{customer}은 존재합니다.')
             else:
                 visible = False
                 if st.button(label='등록', disabled=visible):
                     with st.spinner('진행 중'):
                         with open(f'{session_username}_custom/{customer}', 'w') as f:
                             pass
-                        st.write(f'{customer} 고객 등록 완료')
+                        st.success(f'{customer} 고객 등록 완료')
 
     with delete:
         customers = os.listdir(f'{session_username}_custom')
@@ -153,226 +151,11 @@ def manage_customer(session: str):
                 st.rerun()
 
         else:
-            st.write('고객이 존재하지 않습니다')
+            st.warning('고객이 존재하지 않습니다')
 
-
-# with st.expander("고객사 등록"):
-#         visible = True
-#         auto, manual, ssh_comm = st.tabs(['자동', '수동','명령어 수집'])
-#         with auto:
-#             name = st.text_input('고객사명', key='auto')
-#             csp_type = st.radio(label='CSP 선택',
-#                                 options=['민간NCP', '공공NCP', '민간KTC[@D]', '공공KTC[@D]', '민간NHN', '공공NHN'])
-#             st.write('<style>div.row-widget.stRadio > div{flex-direction:row;}</style>', unsafe_allow_html=True)
-#             if 'NCP' in csp_dict[csp_type]:
-#                 access_key = st.text_input('Access Key', placeholder='API access Key')
-#                 secret_key = st.text_input('Secret Key', placeholder='API secret Key', type="password")
-#                 if name != '' and access_key != '' and secret_key != '':
-#                     visible = False
-#                 if st.button(label='등록 및 API 실행', disabled=visible):
-#                     with st.spinner('진행 중'):
-#                         create_day_in_file = datetime.now().strftime("%Y%m%d")
-#                         create_time_in_file = datetime.now().strftime("%H%M")
-#                         csp = CSPFactory.get_csp(csp_type=csp_dict[csp_type], access_key=access_key,
-#                                                  secret_key=secret_key)
-#                         data_to_excel(csp.get_inventory(), csp_type=csp_dict[csp_type], customer=name,
-#                                       path=f'{session_username}',
-#                                       cday=create_day_in_file)
-#                         write_to_file(type='API', customer=name, csp_type=csp_dict[csp_type],
-#                                       path=f'{session_username}',
-#                                       cday=create_day_in_file, ctime=create_time_in_file)
-#                         st.rerun()
-#             elif 'NHN' in csp_dict[csp_type]:
-#                 tenantid = st.text_input('Tenant ID', placeholder='API endpoint tenantid')
-#                 username = st.text_input('Username', placeholder='root@mail.com')
-#                 password = st.text_input('Password', placeholder='API endpoint password', type="password")
-#                 if name != '' and username != '' and password != '' and tenantid != '':
-#                     visible = False
-#                 if st.button(label='등록 및 API 실행', disabled=visible):
-#                     with st.spinner('진행 중'):
-#                         create_day_in_file = datetime.now().strftime("%Y%m%d")
-#                         create_time_in_file = datetime.now().strftime("%H%M")
-#                         csp = CSPFactory.get_csp(csp_type=csp_dict[csp_type], tenantid=tenantid, username=username,
-#                                                  password=password)
-#                         data_to_excel(csp.get_inventory(), csp_type=csp_dict[csp_type], customer=name,
-#                                       path=f'{session_username}',
-#                                       cday=create_day_in_file)
-#                         write_to_file(type='API', customer=name, csp_type=csp_dict[csp_type],
-#                                       path=f'{session_username}',
-#                                       cday=create_day_in_file, ctime=create_time_in_file)
-#                         st.rerun()
-#             elif 'KTC' in csp_dict[csp_type]:
-#                 username = st.text_input('Username', placeholder='root@mail.com')
-#                 password = st.text_input('Password', placeholder='root\' password', type="password")
-#                 if name != '' and username != '' and password != '':
-#                     visible = False
-#                 if st.button(label='등록 및 API 실행', disabled=visible):
-#                     with st.spinner('진행 중'):
-#                         create_day_in_file = datetime.now().strftime("%Y%m%d")
-#                         create_time_in_file = datetime.now().strftime("%H%M")
-#                         csp = CSPFactory.get_csp(csp_dict[csp_type], username=username, password=password)
-#                         data_to_excel(csp.get_inventory(), csp_type=csp_dict[csp_type], customer=name,
-#                                       path=f'{session_username}',
-#                                       cday=create_day_in_file)
-#                         write_to_file(type='API', customer=name, csp_type=csp_dict[csp_type],
-#                                       path=f'{session_username}',
-#                                       cday=create_day_in_file, ctime=create_time_in_file)
-#                         st.rerun()
-#         with manual:
-#             visible=True
-#
-#             # with col1:
-#             name = st.text_input('고객사명', key='manual')
-#             upload_template = st.file_uploader(label='파일 업로드', type='xlsx')
-#             if name and upload_template:
-#                 visible=False
-#             col1, col2 = st.columns([1,6])
-#             with col1:
-#                 if st.button(label='등록',disabled=visible):
-#                     with st.spinner('진행 중'):
-#                         if upload_template is not None:
-#                             save_path = os.path.join(f"{session_username}_files", upload_template.name)
-#                             with open(save_path, "wb") as f:
-#                                 f.write(upload_template.getbuffer())
-#                             with open(f'{session_username}_custom/{name}', 'a+', encoding='utf-8') as f:
-#                                 create_day_in_file = datetime.now().strftime("%Y%m%d")
-#                                 create_time_in_file = datetime.now().strftime("%H%M")
-#                                 f.write(f'{upload_template.name},{create_day_in_file}{create_time_in_file}\n')
-#                             st.rerun()
-#             with col2:
-#                 with open('./template.xlsx', 'rb') as file:
-#                     file_data = file.read()
-#                 st.download_button(label='템플릿 다운로드', data=file_data, file_name='template.xlsx',
-#                                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 def front(session: str):
-    # admin = False
     session_username = session
     customers = os.listdir(f'{session_username}_custom')
-    # csp_dict = {'민간NCP': 'NCP', '공공NCP': 'NCPG', '민간KTC[@D]': 'KTC', '공공KTC[@D]': 'KTCG', '민간NHN': 'NHN',
-    #             '공공NHN': 'NHNG'}
-    # if not os.path.exists(f"{session_username}_custom"):
-    #     os.makedirs(f"{session_username}_custom")
-    # if not os.path.exists(f"{session_username}_files"):
-    #     os.makedirs(f"{session_username}_files")
-    # adminpw = st.text_input('Admin password', type="password")
-    # if adminpw == 'admin':
-    #     admin = True
-    # if admin:
-    #     with st.expander("고객사 등록"):
-    #         visible = True
-    #         auto, manual, ssh_comm = st.tabs(['자동', '수동','명령어 수집'])
-    #         with auto:
-    #             name = st.text_input('고객사명', key='auto')
-    #             csp_type = st.radio(label='CSP 선택',
-    #                                 options=['민간NCP', '공공NCP', '민간KTC[@D]', '공공KTC[@D]', '민간NHN', '공공NHN'])
-    #             st.write('<style>div.row-widget.stRadio > div{flex-direction:row;}</style>', unsafe_allow_html=True)
-    #             if 'NCP' in csp_dict[csp_type]:
-    #                 access_key = st.text_input('Access Key', placeholder='API access Key')
-    #                 secret_key = st.text_input('Secret Key', placeholder='API secret Key', type="password")
-    #                 if name != '' and access_key != '' and secret_key != '':
-    #                     visible = False
-    #                 if st.button(label='등록 및 API 실행', disabled=visible):
-    #                     with st.spinner('진행 중'):
-    #                         create_day_in_file = datetime.now().strftime("%Y%m%d")
-    #                         create_time_in_file = datetime.now().strftime("%H%M")
-    #                         csp = CSPFactory.get_csp(csp_type=csp_dict[csp_type], access_key=access_key,
-    #                                                  secret_key=secret_key)
-    #                         data_to_excel(csp.get_inventory(), csp_type=csp_dict[csp_type], customer=name,
-    #                                       path=f'{session_username}',
-    #                                       cday=create_day_in_file)
-    #                         write_to_file(type='API', customer=name, csp_type=csp_dict[csp_type],
-    #                                       path=f'{session_username}',
-    #                                       cday=create_day_in_file, ctime=create_time_in_file)
-    #                         st.rerun()
-    #             elif 'NHN' in csp_dict[csp_type]:
-    #                 tenantid = st.text_input('Tenant ID', placeholder='API endpoint tenantid')
-    #                 username = st.text_input('Username', placeholder='root@mail.com')
-    #                 password = st.text_input('Password', placeholder='API endpoint password', type="password")
-    #                 if name != '' and username != '' and password != '' and tenantid != '':
-    #                     visible = False
-    #                 if st.button(label='등록 및 API 실행', disabled=visible):
-    #                     with st.spinner('진행 중'):
-    #                         create_day_in_file = datetime.now().strftime("%Y%m%d")
-    #                         create_time_in_file = datetime.now().strftime("%H%M")
-    #                         csp = CSPFactory.get_csp(csp_type=csp_dict[csp_type], tenantid=tenantid, username=username,
-    #                                                  password=password)
-    #                         data_to_excel(csp.get_inventory(), csp_type=csp_dict[csp_type], customer=name,
-    #                                       path=f'{session_username}',
-    #                                       cday=create_day_in_file)
-    #                         write_to_file(type='API', customer=name, csp_type=csp_dict[csp_type],
-    #                                       path=f'{session_username}',
-    #                                       cday=create_day_in_file, ctime=create_time_in_file)
-    #                         st.rerun()
-    #             elif 'KTC' in csp_dict[csp_type]:
-    #                 username = st.text_input('Username', placeholder='root@mail.com')
-    #                 password = st.text_input('Password', placeholder='root\' password', type="password")
-    #                 if name != '' and username != '' and password != '':
-    #                     visible = False
-    #                 if st.button(label='등록 및 API 실행', disabled=visible):
-    #                     with st.spinner('진행 중'):
-    #                         create_day_in_file = datetime.now().strftime("%Y%m%d")
-    #                         create_time_in_file = datetime.now().strftime("%H%M")
-    #                         csp = CSPFactory.get_csp(csp_dict[csp_type], username=username, password=password)
-    #                         data_to_excel(csp.get_inventory(), csp_type=csp_dict[csp_type], customer=name,
-    #                                       path=f'{session_username}',
-    #                                       cday=create_day_in_file)
-    #                         write_to_file(type='API', customer=name, csp_type=csp_dict[csp_type],
-    #                                       path=f'{session_username}',
-    #                                       cday=create_day_in_file, ctime=create_time_in_file)
-    #                         st.rerun()
-    #         with manual:
-    #             visible=True
-    #
-    #             # with col1:
-    #             name = st.text_input('고객사명', key='manual')
-    #             upload_template = st.file_uploader(label='파일 업로드', type='xlsx')
-    #             if name and upload_template:
-    #                 visible=False
-    #             col1, col2 = st.columns([1,6])
-    #             with col1:
-    #                 if st.button(label='등록',disabled=visible):
-    #                     with st.spinner('진행 중'):
-    #                         if upload_template is not None:
-    #                             save_path = os.path.join(f"{session_username}_files", upload_template.name)
-    #                             with open(save_path, "wb") as f:
-    #                                 f.write(upload_template.getbuffer())
-    #                             with open(f'{session_username}_custom/{name}', 'a+', encoding='utf-8') as f:
-    #                                 create_day_in_file = datetime.now().strftime("%Y%m%d")
-    #                                 create_time_in_file = datetime.now().strftime("%H%M")
-    #                                 f.write(f'{upload_template.name},{create_day_in_file}{create_time_in_file}\n')
-    #                             st.rerun()
-    #             with col2:
-    #                 with open('./template.xlsx', 'rb') as file:
-    #                     file_data = file.read()
-    #                 st.download_button(label='템플릿 다운로드', data=file_data, file_name='template.xlsx',
-    #                                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-    #         with ssh_comm:
-    #             if len(customers) != 0:
-    #                 selected_customer = st.selectbox(options=customers, label='고객사 선택', placeholder='고객사를 선택하세요.', )
-    #                 with open(f'{session_username}_custom/{selected_customer}', 'r', encoding='utf-8') as f:
-    #                     lines = f.readlines()
-    #                     if len(lines) != 0:
-    #                         flines = lines[-1].strip()
-    #                         filename = flines.split(',')[0]
-    #                     if filename is not None and 'xlsx' in filename:
-    #                         userid = f'{session_username}'
-    #                         df = read_customer_file(userid=userid, filename=filename)
-    #                         for i,data in enumerate(df['ip']):
-    #                             st.text(data)
-    #                             st.text(df.iloc[0,i])
-    #                         # for i in df:
-    #
-    #             else:
-    #                 pass
-    #             # st.write('ss')
-    #             # with col2:
-    #             #     with open('./template.xlsx', 'rb') as file:
-    #             #         file_data = file.read()
-    #             #     st.download_button(label='템플릿 다운로드', data=file_data, file_name='template.xlsx',
-    #             #                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-    #
-    #
-
     options = st.multiselect(options=customers, label='고객사 선택', default=customers, placeholder='고객사를 선택하세요.', )
     df = None
     if customers:
@@ -395,9 +178,9 @@ def front(session: str):
                 df.fillna('', inplace=True)
                 # df = df.map(lambda x: int(x) if isinstance(x, float) else x)
             else:
-                st.write(f'{customer}은 현재 인벤토리가 없습니다. 인벤토리 관리를 통해 등록하세요')
+                st.warning(f'{customer}은 현재 인벤토리가 없습니다. 인벤토리 관리를 통해 등록하세요')
     else:
-        st.write(f'등록된 고객사가 없습니다. 고객사 관리에서 고객을 등록 하고 인벤토리를 등록하세요.')
+        st.warning(f'등록된 고객사가 없습니다. 고객사 관리에서 고객을 등록 하고 인벤토리를 등록하세요.')
 
     if df is not None:
         filter_df = df
@@ -436,8 +219,6 @@ if st.session_state['authentication_status']:
         manage_customer(session=session_username)
     elif choice == '인벤토리 관리':
         manage_inventory(session=session_username)
-    # st.write(choice)
-    # front()
 elif st.session_state['authentication_status'] is False:
     st.error('Username/password is incorrect')
 elif st.session_state['authentication_status'] is None:
