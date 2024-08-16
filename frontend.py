@@ -35,9 +35,9 @@ def manage_inventory(session: str):
     auto, manual, ssh_comm = st.tabs(['자동', '수동', '명령어 수집'])
     with auto:
         if customers:
-            name = st.radio(label='고객명', options=customers,horizontal=True)
+            name = st.radio(label='고객명', options=customers, horizontal=True, key=auto)
             csp_type = st.radio(label='CSP 선택',
-                                options=['민간NCP', '공공NCP', '민간KTC[@D]', '공공KTC[@D]', '민간NHN', '공공NHN'],horizontal=True)
+                                options=['민간NCP', '공공NCP', '민간KTC[@D]', '공공KTC[@D]', '민간NHN', '공공NHN'], horizontal=True)
             if 'NCP' in csp_dict[csp_type]:
                 access_key = st.text_input('Access Key', placeholder='API access Key')
                 secret_key = st.text_input('Secret Key', placeholder='API secret Key', type="password")
@@ -96,9 +96,7 @@ def manage_inventory(session: str):
             st.warning('등록된 고객이 없습니다.')
     with manual:
         visible = True
-
-        # with col1:
-        name = st.text_input('고객사명', key='manual')
+        name = st.radio(label='고객명', options=customers, horizontal=True, key=manual)
         upload_template = st.file_uploader(label='파일 업로드', type='xlsx')
         if name and upload_template:
             visible = False
@@ -142,13 +140,14 @@ def manage_customer(session: str):
     with delete:
         customers = os.listdir(f'{session_username}_custom')
         if customers:
-            selected = st.radio(label='고객명', options=customers,horizontal=True)
+            selected = st.radio(label='고객명', options=customers, horizontal=True)
             if st.button('삭제'):
                 os.remove(f'{session_username}_custom/{selected}')
                 st.rerun()
 
         else:
             st.warning('고객이 존재하지 않습니다')
+
 
 def front(session: str):
     session_username = session
