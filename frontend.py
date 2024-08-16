@@ -133,12 +133,14 @@ def manage_inventory(session: str):
                         if len(lines) != 0:
                             flines = lines[-1].strip()
                             filename = flines.split(',')[0]
-                        df = read_customer_file(filename=filename, userid=session_username)
-                        command_df = st.data_editor(df)
-                        if st.button(label='추출'):
-                            command_df_dict = command_df.to_dict(orient='records')
-                            with open(f'{session_username}_files/{name}_remote_comm.json', 'w') as f:
-                                f.write(json.dumps(command_df_dict))
+                            df = read_customer_file(filename=filename, userid=session_username)
+                            command_df = st.data_editor(df)
+                            if st.button(label='추출'):
+                                command_df_dict = command_df.to_dict(orient='records')
+                                with open(f'{session_username}_files/{name}_remote_comm.json', 'w') as f:
+                                    f.write(json.dumps(command_df_dict))
+                        else:
+                            st.warning('등록된 인벤토리가 없습니다.')
 
 
 def manage_customer(session: str):
