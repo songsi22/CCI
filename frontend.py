@@ -56,7 +56,6 @@ def manage_inventory(session: str):
                                       path=f'{session_username}',
                                       cday=create_day_in_file, ctime=create_time_in_file)
                         st.success(f'{name} 등록 완료. 인벤토리에서 확인하세요')
-                        st.rerun()
             elif 'NHN' in csp_dict[csp_type]:
                 tenantid = st.text_input('Tenant ID', placeholder='API endpoint tenantid')
                 username = st.text_input('Username', placeholder='root@mail.com')
@@ -76,7 +75,6 @@ def manage_inventory(session: str):
                                       path=f'{session_username}',
                                       cday=create_day_in_file, ctime=create_time_in_file)
                         st.success(f'{name} 등록 완료. 인벤토리에서 확인하세요')
-                        st.rerun()
             elif 'KTC' in csp_dict[csp_type]:
                 username = st.text_input('Username', placeholder='root@mail.com')
                 password = st.text_input('Password', placeholder='root\' password', type="password")
@@ -94,7 +92,6 @@ def manage_inventory(session: str):
                                       path=f'{session_username}',
                                       cday=create_day_in_file, ctime=create_time_in_file)
                         st.success(f'{name} 등록 완료. 인벤토리에서 확인하세요')
-                        # st.rerun()
         else:
             st.warning('등록된 고객이 없습니다.')
     with manual:
