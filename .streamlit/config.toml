@@ -1,0 +1,10 @@
+[theme]
+primaryColor = "#5AB88F"  # 예: 토마토색
+backgroundColor = "#F5F5F5"  # 밝은 회색
+secondaryBackgroundColor = "#FFFFFF"  # 흰색
+textColor = "#000000"  # 검은색
+#font = "monospace"  # 고정폭 글꼴
+
+[server]
+port = 8501
+maxUploadSize = 10
