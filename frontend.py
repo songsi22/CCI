@@ -121,7 +121,7 @@ def manage_inventory(session: str):
                 st.download_button(label='템플릿 다운로드', data=file_data, file_name='template.xlsx',
                                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
         else:
-            st.warning('고객이 존재하지 않습니다')
+            st.warning('등록된 고객이 없습니다.')
 
 def manage_customer(session: str):
     session_username = session
@@ -148,7 +148,7 @@ def manage_customer(session: str):
                 os.remove(f'{session_username}_custom/{selected}')
                 st.rerun()
         else:
-            st.warning('고객이 존재하지 않습니다')
+            st.warning('등록된 고객이 없습니다.')
 
 
 def front(session: str):
