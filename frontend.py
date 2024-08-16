@@ -95,30 +95,33 @@ def manage_inventory(session: str):
         else:
             st.warning('등록된 고객이 없습니다.')
     with manual:
-        visible = True
-        name = st.radio(label='고객명', options=customers, horizontal=True, key=manual)
-        upload_template = st.file_uploader(label='파일 업로드', type='xlsx')
-        if name and upload_template:
-            visible = False
-        col1, col2 = st.columns([1, 6])
-        with col1:
-            if st.button(label='등록', disabled=visible):
-                with st.spinner('진행 중'):
-                    if upload_template is not None:
-                        save_path = os.path.join(f"{session_username}_files", upload_template.name)
-                        with open(save_path, "wb") as f:
-                            f.write(upload_template.getbuffer())
-                        with open(f'{session_username}_custom/{name}', 'a+', encoding='utf-8') as f:
-                            create_day_in_file = datetime.now().strftime("%Y%m%d")
-                            create_time_in_file = datetime.now().strftime("%H%M")
-                            f.write(f'{upload_template.name},{create_day_in_file}{create_time_in_file}\n')
-                        st.rerun()
-        with col2:
-            with open('./template.xlsx', 'rb') as file:
-                file_data = file.read()
-            st.download_button(label='템플릿 다운로드', data=file_data, file_name='template.xlsx',
-                               mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-
+        customers = os.listdir(f'{session_username}_custom')
+        if customers:
+            visible = True
+            name = st.radio(label='고객명', options=customers, horizontal=True, key=manual)
+            upload_template = st.file_uploader(label='파일 업로드', type='xlsx')
+            if name and upload_template:
+                visible = False
+            col1, col2 = st.columns([1, 6])
+            with col1:
+                if st.button(label='등록', disabled=visible):
+                    with st.spinner('진행 중'):
+                        if upload_template is not None:
+                            save_path = os.path.join(f"{session_username}_files", upload_template.name)
+                            with open(save_path, "wb") as f:
+                                f.write(upload_template.getbuffer())
+                            with open(f'{session_username}_custom/{name}', 'a+', encoding='utf-8') as f:
+                                create_day_in_file = datetime.now().strftime("%Y%m%d")
+                                create_time_in_file = datetime.now().strftime("%H%M")
+                                f.write(f'{upload_template.name},{create_day_in_file}{create_time_in_file}\n')
+                            st.rerun()
+            with col2:
+                with open('./template.xlsx', 'rb') as file:
+                    file_data = file.read()
+                st.download_button(label='템플릿 다운로드', data=file_data, file_name='template.xlsx',
+                                   mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+        else:
+            st.warning('고객이 존재하지 않습니다')
 
 def manage_customer(session: str):
     session_username = session
@@ -144,7 +147,6 @@ def manage_customer(session: str):
             if st.button('삭제'):
                 os.remove(f'{session_username}_custom/{selected}')
                 st.rerun()
-
         else:
             st.warning('고객이 존재하지 않습니다')
 
