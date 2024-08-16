@@ -114,7 +114,7 @@ def manage_inventory(session: str):
                                 create_day_in_file = datetime.now().strftime("%Y%m%d")
                                 create_time_in_file = datetime.now().strftime("%H%M")
                                 f.write(f'{upload_template.name},{create_day_in_file}{create_time_in_file}\n')
-                            st.rerun()
+                            st.success(f'{name} 등록 완료. 인벤토리에서 확인하세요')
             with col2:
                 with open('./template.xlsx', 'rb') as file:
                     file_data = file.read()
