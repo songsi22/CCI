@@ -1,6 +1,6 @@
 import os
 from datetime import datetime
-
+import json
 from streamlit_option_menu import option_menu
 
 from csp_factory import CSPFactory
@@ -8,12 +8,12 @@ import streamlit as st
 import pandas as pd
 from st_keyup import st_keyup
 from data_to_excel import data_to_excel, write_to_file
-from read_inventory import read_template
+from read_inventory import read_template, read_customer_file
 import streamlit_authenticator as stauth
 import yaml
 from yaml.loader import SafeLoader
 
-st.set_page_config(layout="wide",page_title='Inventory')
+st.set_page_config(layout="wide", page_title='Inventory')
 
 with open('./config.yaml') as file:
     config = yaml.load(file, Loader=SafeLoader)
@@ -32,10 +32,10 @@ def manage_inventory(session: str):
     session_username = session
     customers = os.listdir(f'{session_username}_custom')
     visible = True
-    auto, manual, ssh_comm = st.tabs(['자동', '수동', '명령어 수집'])
+    auto, manual, remote_comm = st.tabs(['자동', '수동', '명령어 수집'])
     with auto:
         if customers:
-            name = st.selectbox(label='고객명', options=customers, key=auto)
+            name = st.selectbox(label='고객명', options=customers, key='auto')
             csp_type = st.radio(label='CSP 선택',
                                 options=['민간NCP', '공공NCP', '민간KTC[@D]', '공공KTC[@D]', '민간NHN', '공공NHN'], horizontal=True)
             if 'NCP' in csp_dict[csp_type]:
@@ -98,7 +98,7 @@ def manage_inventory(session: str):
         customers = os.listdir(f'{session_username}_custom')
         if customers:
             visible = True
-            name = st.selectbox(label='고객명', options=customers, key=manual)
+            name = st.selectbox(label='고객명', options=customers, key='manual')
             upload_template = st.file_uploader(label='파일 업로드', type='xlsx')
             if name and upload_template:
                 visible = False
@@ -122,6 +122,24 @@ def manage_inventory(session: str):
                                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
         else:
             st.warning('등록된 고객이 없습니다.')
+        with remote_comm:
+            customers = os.listdir(f'{session_username}_custom')
+            if customers:
+                name = st.selectbox(label='고객명', options=customers, key='remote_comm', index=None,
+                                    placeholder='고객사를 선택해주세요')
+                if name:
+                    with open(f'{session_username}_custom/{name}', 'r', encoding='utf-8') as f:
+                        lines = f.readlines()
+                        if len(lines) != 0:
+                            flines = lines[-1].strip()
+                            filename = flines.split(',')[0]
+                        df = read_customer_file(filename=filename, userid=session_username)
+                        command_df = st.data_editor(df)
+                        if st.button(label='추출'):
+                            command_df_dict = command_df.to_dict(orient='records')
+                            with open(f'{session_username}_files/{name}_remote_comm.json', 'w') as f:
+                                f.write(json.dumps(command_df_dict))
+
 
 def manage_customer(session: str):
     session_username = session
@@ -143,7 +161,7 @@ def manage_customer(session: str):
     with delete:
         customers = os.listdir(f'{session_username}_custom')
         if customers:
-            selected = st.selectbox(label='고객명', options=customers, key=delete)
+            selected = st.selectbox(label='고객명', options=customers, key='delete')
             if st.button('삭제'):
                 os.remove(f'{session_username}_custom/{selected}')
                 st.rerun()
