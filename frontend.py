@@ -102,28 +102,27 @@ def manage_inventory(session: str):
         customers = os.listdir(f'{session_username}_custom')
         if customers:
             name = st.selectbox(label='고객명', options=customers, key='manual')
-            upload_template = st.file_uploader(label='파일 업로드', type='xlsx')
-            col1, col2 = st.columns([1, 6])
+            col1, col2 = st.columns([1,6])
             with col1:
-                if st.button(label='등록', key='col1'):
-                    if all([name, upload_template]):
-                        with st.spinner('진행 중'):
-                            if upload_template is not None:
-                                save_path = os.path.join(f"{session_username}_files", upload_template.name)
-                                with open(save_path, "wb") as f:
-                                    f.write(upload_template.getbuffer())
-                                with open(f'{session_username}_custom/{name}', 'a+', encoding='utf-8') as f:
-                                    create_day_in_file = datetime.now().strftime("%Y%m%d")
-                                    create_time_in_file = datetime.now().strftime("%H%M")
-                                    f.write(f'{upload_template.name},{create_day_in_file}{create_time_in_file}\n')
-                                st.success(f'{name} 등록 완료. 인벤토리에서 확인하세요')
-                    else:
-                        st.warning('파일을 업로드 해주세요.')
-            with col2:
                 with open('./template.xlsx', 'rb') as file:
                     file_data = file.read()
                 st.download_button(label='템플릿 다운로드', data=file_data, file_name='template.xlsx',
                                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+            with col2:
+                upload_template = st.file_uploader(label='파일 업로드', type='xlsx')
+            if st.button(label='등록', key='col1'):
+                if all([name, upload_template]):
+                    with st.spinner('진행 중'):
+                        save_path = os.path.join(f"{session_username}_files", upload_template.name)
+                        with open(save_path, "wb") as f:
+                            f.write(upload_template.getbuffer())
+                        with open(f'{session_username}_custom/{name}', 'a+', encoding='utf-8') as f:
+                            create_day_in_file = datetime.now().strftime("%Y%m%d")
+                            create_time_in_file = datetime.now().strftime("%H%M")
+                            f.write(f'{upload_template.name},{create_day_in_file}{create_time_in_file}\n')
+                        st.success(f'{name} 등록 완료. 인벤토리에서 확인하세요')
+                else:
+                    st.warning('파일을 업로드 해주세요.')
         else:
             st.warning('등록된 고객이 없습니다.')
         with remote_comm:
@@ -140,9 +139,11 @@ def manage_inventory(session: str):
                             df = read_customer_file(filename=filename, userid=session_username)
                             command_df = st.data_editor(df)
                             if st.button(label='추출'):
-                                command_df_dict = command_df.to_dict(orient='records')
-                                with open(f'{session_username}_files/{name}_remote_comm.json', 'w') as f:
-                                    f.write(json.dumps(command_df_dict))
+                                with st.spinner('진행 중'):
+                                    command_df_dict = command_df.to_dict(orient='records')
+                                    with open(f'{session_username}_files/{name}_remote_comm.json', 'w') as f:
+                                        f.write(json.dumps(command_df_dict))
+                                    st.success('추출 완료')
                         else:
                             st.warning('등록된 인벤토리가 없습니다.')
 
