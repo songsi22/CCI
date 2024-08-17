@@ -39,8 +39,8 @@ def manage_inventory(session: str):
             csp_type = st.radio(label='CSP 선택',
                                 options=['민간NCP', '공공NCP', '민간KTC[@D]', '공공KTC[@D]', '민간NHN', '공공NHN'], horizontal=True)
             if 'NCP' in csp_dict[csp_type]:
-                access_key = st.text_input('Access Key', placeholder='API access Key')
-                secret_key = st.text_input('Secret Key', placeholder='API secret Key', type="password")
+                access_key = st.text_input('Access Key', placeholder='API access Key').strip()
+                secret_key = st.text_input('Secret Key', placeholder='API secret Key', type="password").strip()
                 if st.button(label='API를 통한 수집', key='ncpb'):
                     if all([name, access_key, secret_key]):
                         with st.spinner('진행 중'):
@@ -59,9 +59,9 @@ def manage_inventory(session: str):
                         st.warning('모든 입력을 완료해주세요.')
 
             elif 'NHN' in csp_dict[csp_type]:
-                tenantid = st.text_input('Tenant ID', placeholder='API endpoint tenantid')
-                username = st.text_input('Username', placeholder='root@mail.com')
-                password = st.text_input('Password', placeholder='API endpoint password', type="password")
+                tenantid = st.text_input('Tenant ID', placeholder='API endpoint tenantid').strip()
+                username = st.text_input('Username', placeholder='root@mail.com').strip()
+                password = st.text_input('Password', placeholder='API endpoint password', type="password").strip()
                 if st.button(label='API를 통한 수집', disabled=visible, key='nhnb'):
                     if all([name, tenantid, username, password]):
                         with st.spinner('진행 중'):
@@ -80,12 +80,10 @@ def manage_inventory(session: str):
                         st.warning('모든 입력을 완료해주세요.')
 
             elif 'KTC' in csp_dict[csp_type]:
-                username = st.text_input('Username', placeholder='root@mail.com')
-                password = st.text_input('Password', placeholder='root\' password', type="password")
-                if name != '' and username != '' and password != '':
-                    visible = False
+                username = st.text_input('Username', placeholder='root@mail.com').strip()
+                password = st.text_input('Password', placeholder='root\' password', type="password").strip()
                 if st.button(label='API를 통한 수집', disabled=visible, key='ktcb'):
-                    if all([name, username, password]):
+                    if all([name.stripe(), username, password]):
                         with st.spinner('진행 중'):
                             create_day_in_file = datetime.now().strftime("%Y%m%d")
                             create_time_in_file = datetime.now().strftime("%H%M")
@@ -154,18 +152,18 @@ def manage_customer(session: str):
     session_username = session
     create, delete = st.tabs(['등록', '삭제'])
     with create:
-        customer = st.text_input('고객사명', key='customer')
-        if customer.strip():
-            if os.path.exists(f'{session_username}_custom/{customer.strip()}'):
-                st.warning(f'{customer.stripe()}은 존재합니다.')
+        customer = st.text_input('고객사명', key='customer').strip()
+        if customer:
+            if os.path.exists(f'{session_username}_custom/{customer}'):
+                st.warning(f'{customer}은 존재합니다.')
         if st.button(label='등록', key='create'):
-            if not customer.strip():  # 고객사명이 공백일 경우
+            if not customer:  # 고객사명이 공백일 경우
                 st.warning('고객사명을 입력해 주세요.')
             else:
                 with st.spinner('진행 중'):
-                    with open(f'{session_username}_custom/{customer.strip()}', 'w') as f:
+                    with open(f'{session_username}_custom/{customer}', 'w') as f:
                         pass
-                    st.success(f'{customer.strip()} 고객 등록 완료')
+                    st.success(f'{customer} 고객 등록 완료')
 
     with delete:
         customers = os.listdir(f'{session_username}_custom')
