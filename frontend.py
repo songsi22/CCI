@@ -141,6 +141,8 @@ def manage_inventory(session: str):
                             if st.button(label='추출'):
                                 with st.spinner('진행 중'):
                                     command_df_dict = command_df.to_dict(orient='records')
+                                    command_df_dict.append({'filename': filename})
+                                    command_df_dict.append({'user': session_username})
                                     with open(f'{session_username}_files/{name}_remote_comm.json', 'w') as f:
                                         f.write(json.dumps(command_df_dict))
                                     st.success('추출 완료')
