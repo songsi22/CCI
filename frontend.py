@@ -41,57 +41,64 @@ def manage_inventory(session: str):
             if 'NCP' in csp_dict[csp_type]:
                 access_key = st.text_input('Access Key', placeholder='API access Key')
                 secret_key = st.text_input('Secret Key', placeholder='API secret Key', type="password")
-                if name != '' and access_key != '' and secret_key != '':
-                    visible = False
-                if st.button(label='API를 통한 수집', disabled=visible):
-                    with st.spinner('진행 중'):
-                        create_day_in_file = datetime.now().strftime("%Y%m%d")
-                        create_time_in_file = datetime.now().strftime("%H%M")
-                        csp = CSPFactory.get_csp(csp_type=csp_dict[csp_type], access_key=access_key,
-                                                 secret_key=secret_key)
-                        data_to_excel(csp.get_inventory(), csp_type=csp_dict[csp_type], customer=name,
-                                      path=f'{session_username}',
-                                      cday=create_day_in_file)
-                        write_to_file(type='API', customer=name, csp_type=csp_dict[csp_type],
-                                      path=f'{session_username}',
-                                      cday=create_day_in_file, ctime=create_time_in_file)
-                        st.success(f'{name} 등록 완료. 인벤토리에서 확인하세요')
+                if st.button(label='API를 통한 수집', key='ncpb'):
+                    if all([name, access_key, secret_key]):
+                        with st.spinner('진행 중'):
+                            create_day_in_file = datetime.now().strftime("%Y%m%d")
+                            create_time_in_file = datetime.now().strftime("%H%M")
+                            csp = CSPFactory.get_csp(csp_type=csp_dict[csp_type], access_key=access_key,
+                                                     secret_key=secret_key)
+                            data_to_excel(csp.get_inventory(), csp_type=csp_dict[csp_type], customer=name,
+                                          path=f'{session_username}',
+                                          cday=create_day_in_file)
+                            write_to_file(type='API', customer=name, csp_type=csp_dict[csp_type],
+                                          path=f'{session_username}',
+                                          cday=create_day_in_file, ctime=create_time_in_file)
+                            st.success(f'{name} 등록 완료. 인벤토리에서 확인하세요')
+                    else:
+                        st.warning('모든 입력을 완료해주세요.')
+
             elif 'NHN' in csp_dict[csp_type]:
                 tenantid = st.text_input('Tenant ID', placeholder='API endpoint tenantid')
                 username = st.text_input('Username', placeholder='root@mail.com')
                 password = st.text_input('Password', placeholder='API endpoint password', type="password")
-                if name != '' and username != '' and password != '' and tenantid != '':
-                    visible = False
-                if st.button(label='API를 통한 수집', disabled=visible):
-                    with st.spinner('진행 중'):
-                        create_day_in_file = datetime.now().strftime("%Y%m%d")
-                        create_time_in_file = datetime.now().strftime("%H%M")
-                        csp = CSPFactory.get_csp(csp_type=csp_dict[csp_type], tenantid=tenantid, username=username,
-                                                 password=password)
-                        data_to_excel(csp.get_inventory(), csp_type=csp_dict[csp_type], customer=name,
-                                      path=f'{session_username}',
-                                      cday=create_day_in_file)
-                        write_to_file(type='API', customer=name, csp_type=csp_dict[csp_type],
-                                      path=f'{session_username}',
-                                      cday=create_day_in_file, ctime=create_time_in_file)
-                        st.success(f'{name} 등록 완료. 인벤토리에서 확인하세요')
+                if st.button(label='API를 통한 수집', disabled=visible, key='nhnb'):
+                    if all([name, tenantid, username, password]):
+                        with st.spinner('진행 중'):
+                            create_day_in_file = datetime.now().strftime("%Y%m%d")
+                            create_time_in_file = datetime.now().strftime("%H%M")
+                            csp = CSPFactory.get_csp(csp_type=csp_dict[csp_type], tenantid=tenantid, username=username,
+                                                     password=password)
+                            data_to_excel(csp.get_inventory(), csp_type=csp_dict[csp_type], customer=name,
+                                          path=f'{session_username}',
+                                          cday=create_day_in_file)
+                            write_to_file(type='API', customer=name, csp_type=csp_dict[csp_type],
+                                          path=f'{session_username}',
+                                          cday=create_day_in_file, ctime=create_time_in_file)
+                            st.success(f'{name} 등록 완료. 인벤토리에서 확인하세요')
+                    else:
+                        st.warning('모든 입력을 완료해주세요.')
+
             elif 'KTC' in csp_dict[csp_type]:
                 username = st.text_input('Username', placeholder='root@mail.com')
                 password = st.text_input('Password', placeholder='root\' password', type="password")
                 if name != '' and username != '' and password != '':
                     visible = False
-                if st.button(label='API를 통한 수집', disabled=visible):
-                    with st.spinner('진행 중'):
-                        create_day_in_file = datetime.now().strftime("%Y%m%d")
-                        create_time_in_file = datetime.now().strftime("%H%M")
-                        csp = CSPFactory.get_csp(csp_dict[csp_type], username=username, password=password)
-                        data_to_excel(csp.get_inventory(), csp_type=csp_dict[csp_type], customer=name,
-                                      path=f'{session_username}',
-                                      cday=create_day_in_file)
-                        write_to_file(type='API', customer=name, csp_type=csp_dict[csp_type],
-                                      path=f'{session_username}',
-                                      cday=create_day_in_file, ctime=create_time_in_file)
-                        st.success(f'{name} 등록 완료. 인벤토리에서 확인하세요')
+                if st.button(label='API를 통한 수집', disabled=visible, key='ktcb'):
+                    if all([name, username, password]):
+                        with st.spinner('진행 중'):
+                            create_day_in_file = datetime.now().strftime("%Y%m%d")
+                            create_time_in_file = datetime.now().strftime("%H%M")
+                            csp = CSPFactory.get_csp(csp_dict[csp_type], username=username, password=password)
+                            data_to_excel(csp.get_inventory(), csp_type=csp_dict[csp_type], customer=name,
+                                          path=f'{session_username}',
+                                          cday=create_day_in_file)
+                            write_to_file(type='API', customer=name, csp_type=csp_dict[csp_type],
+                                          path=f'{session_username}',
+                                          cday=create_day_in_file, ctime=create_time_in_file)
+                            st.success(f'{name} 등록 완료. 인벤토리에서 확인하세요')
+                    else:
+                        st.warning('모든 입력을 완료해주세요.')
         else:
             st.warning('등록된 고객이 없습니다.')
     with manual:
@@ -104,7 +111,7 @@ def manage_inventory(session: str):
                 visible = False
             col1, col2 = st.columns([1, 6])
             with col1:
-                if st.button(label='등록', disabled=visible):
+                if st.button(label='등록', disabled=visible, key='col1'):
                     with st.spinner('진행 중'):
                         if upload_template is not None:
                             save_path = os.path.join(f"{session_username}_files", upload_template.name)
@@ -147,18 +154,18 @@ def manage_customer(session: str):
     session_username = session
     create, delete = st.tabs(['등록', '삭제'])
     with create:
-        visible = True
         customer = st.text_input('고객사명', key='customer')
-        if customer:
-            if os.path.exists(f'{session_username}_custom/{customer}'):
-                st.warning(f'{customer}은 존재합니다.')
+        if customer.strip():
+            if os.path.exists(f'{session_username}_custom/{customer.strip()}'):
+                st.warning(f'{customer.stripe()}은 존재합니다.')
+        if st.button(label='등록', key='create'):
+            if not customer.strip():  # 고객사명이 공백일 경우
+                st.warning('고객사명을 입력해 주세요.')
             else:
-                visible = False
-                if st.button(label='등록', disabled=visible):
-                    with st.spinner('진행 중'):
-                        with open(f'{session_username}_custom/{customer}', 'w') as f:
-                            pass
-                        st.success(f'{customer} 고객 등록 완료')
+                with st.spinner('진행 중'):
+                    with open(f'{session_username}_custom/{customer.strip()}', 'w') as f:
+                        pass
+                    st.success(f'{customer.strip()} 고객 등록 완료')
 
     with delete:
         customers = os.listdir(f'{session_username}_custom')
@@ -178,9 +185,9 @@ def front(session: str):
     if not os.path.exists(f"{st.session_state['username']}_files"):
         os.makedirs(f"{st.session_state['username']}_files")
     customers = os.listdir(f'{session_username}_custom')
-    options = st.multiselect(options=customers, label='고객사 선택', default=customers, placeholder='고객사를 선택하세요.', )
     df = None
     if customers:
+        options = st.multiselect(options=customers, label='고객사 선택', default=customers, placeholder='고객사를 선택하세요.', )
         for customer in options:
             filename = None
             with open(f'{session_username}_custom/{customer}', 'r', encoding='utf-8') as f:
