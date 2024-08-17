@@ -31,7 +31,6 @@ csp_dict = {'민간NCP': 'NCP', '공공NCP': 'NCPG', '민간KTC[@D]': 'KTC', '�
 def manage_inventory(session: str):
     session_username = session
     customers = os.listdir(f'{session_username}_custom')
-    visible = True
     auto, manual, remote_comm = st.tabs(['자동', '수동', '명령어 수집'])
     with auto:
         if customers:
@@ -62,7 +61,7 @@ def manage_inventory(session: str):
                 tenantid = st.text_input('Tenant ID', placeholder='API endpoint tenantid').strip()
                 username = st.text_input('Username', placeholder='root@mail.com').strip()
                 password = st.text_input('Password', placeholder='API endpoint password', type="password").strip()
-                if st.button(label='API를 통한 수집', disabled=visible, key='nhnb'):
+                if st.button(label='API를 통한 수집', key='nhnb'):
                     if all([name, tenantid, username, password]):
                         with st.spinner('진행 중'):
                             create_day_in_file = datetime.now().strftime("%Y%m%d")
@@ -82,8 +81,8 @@ def manage_inventory(session: str):
             elif 'KTC' in csp_dict[csp_type]:
                 username = st.text_input('Username', placeholder='root@mail.com').strip()
                 password = st.text_input('Password', placeholder='root\' password', type="password").strip()
-                if st.button(label='API를 통한 수집', disabled=visible, key='ktcb'):
-                    if all([name.stripe(), username, password]):
+                if st.button(label='API를 통한 수집', key='ktcb'):
+                    if all([name, username, password]):
                         with st.spinner('진행 중'):
                             create_day_in_file = datetime.now().strftime("%Y%m%d")
                             create_time_in_file = datetime.now().strftime("%H%M")
@@ -102,24 +101,24 @@ def manage_inventory(session: str):
     with manual:
         customers = os.listdir(f'{session_username}_custom')
         if customers:
-            visible = True
             name = st.selectbox(label='고객명', options=customers, key='manual')
             upload_template = st.file_uploader(label='파일 업로드', type='xlsx')
-            if name and upload_template:
-                visible = False
             col1, col2 = st.columns([1, 6])
             with col1:
-                if st.button(label='등록', disabled=visible, key='col1'):
-                    with st.spinner('진행 중'):
-                        if upload_template is not None:
-                            save_path = os.path.join(f"{session_username}_files", upload_template.name)
-                            with open(save_path, "wb") as f:
-                                f.write(upload_template.getbuffer())
-                            with open(f'{session_username}_custom/{name}', 'a+', encoding='utf-8') as f:
-                                create_day_in_file = datetime.now().strftime("%Y%m%d")
-                                create_time_in_file = datetime.now().strftime("%H%M")
-                                f.write(f'{upload_template.name},{create_day_in_file}{create_time_in_file}\n')
-                            st.success(f'{name} 등록 완료. 인벤토리에서 확인하세요')
+                if st.button(label='등록', key='col1'):
+                    if all([name, upload_template]):
+                        with st.spinner('진행 중'):
+                            if upload_template is not None:
+                                save_path = os.path.join(f"{session_username}_files", upload_template.name)
+                                with open(save_path, "wb") as f:
+                                    f.write(upload_template.getbuffer())
+                                with open(f'{session_username}_custom/{name}', 'a+', encoding='utf-8') as f:
+                                    create_day_in_file = datetime.now().strftime("%Y%m%d")
+                                    create_time_in_file = datetime.now().strftime("%H%M")
+                                    f.write(f'{upload_template.name},{create_day_in_file}{create_time_in_file}\n')
+                                st.success(f'{name} 등록 완료. 인벤토리에서 확인하세요')
+                    else:
+                        st.warning('파일을 업로드 해주세요.')
             with col2:
                 with open('./template.xlsx', 'rb') as file:
                     file_data = file.read()
