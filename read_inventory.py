@@ -16,5 +16,4 @@ def read_customer_file(filename,userid):
     df.insert(2,'port',22)
     df.insert(3,'user','')
     df.insert(4,'password','')
-    # import pdb;pdb.set_trace(df)
     return df
