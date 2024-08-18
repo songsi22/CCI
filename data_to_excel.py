@@ -47,7 +47,7 @@ def data_to_excel(inventories, csp_type, path, cday, customer=''):
         for uppercase in string.ascii_uppercase[:-10]:
             ws[f'{uppercase}{i + 5}'].border = thin_border
             ws[f'{uppercase}{i + 5}'].alignment = Alignment(horizontal='center', vertical='center')
-    wb.save(f'./{path}_files/{customer}{csp_type}_inventory_{cday}.xlsx')
+    wb.save(f'./{path}_files/{customer}-{csp_type}-inventory-{cday}.xlsx')
 
 
 def write_to_file(type, csp_type, customer, path, cday, ctime, filename=''):
