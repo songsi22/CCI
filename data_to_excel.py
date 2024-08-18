@@ -53,7 +53,7 @@ def data_to_excel(inventories, csp_type, path, cday, customer=''):
 def write_to_file(type, csp_type, customer, path, cday, ctime, filename=''):
     if type == 'API':
         with open(f'{path}_custom/{customer}', 'a+', encoding='utf-8') as f:
-            f.write(f'{customer}-{csp_type}_inventory_{cday}.xlsx,{cday}{ctime}\n')
+            f.write(f'{customer}-{csp_type}-inventory-{cday}.xlsx,{cday}{ctime}\n')
     else:
         with open(f'{path}_custom/{customer}', 'a+', encoding='utf-8') as f:
             f.write(f'{filename},{cday}{ctime}\n')
