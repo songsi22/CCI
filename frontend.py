@@ -102,7 +102,7 @@ def manage_inventory(session: str):
         customers = os.listdir(f'{session_username}_custom')
         if customers:
             name = st.selectbox(label='고객명', options=customers, key='manual')
-            col1, col2 = st.columns([1,6])
+            col1, col2 = st.columns([1, 6])
             with col1:
                 with open('./template.xlsx', 'rb') as file:
                     file_data = file.read()
@@ -137,15 +137,29 @@ def manage_inventory(session: str):
                             flines = lines[-1].strip()
                             filename = flines.split(',')[0]
                             df = read_customer_file(filename=filename, userid=session_username)
-                            command_df = st.data_editor(df)
+                            command_df = st.data_editor(df, column_config={
+                                "selected": st.column_config.CheckboxColumn(
+                                    "selected",
+                                    default=False,
+                                )
+                            }, )
+                            print(command_df[command_df['selected'] == True])
                             if st.button(label='추출'):
                                 with st.spinner('진행 중'):
-                                    command_df_dict = command_df.to_dict(orient='records')
+                                    command_df_dict = command_df[command_df['selected'] == True].to_dict(orient='records')
                                     command_df_dict.append({'filename': filename})
                                     command_df_dict.append({'user': session_username})
                                     with open(f'{session_username}_files/{name}_remote_comm.json', 'w') as f:
                                         f.write(json.dumps(command_df_dict))
                                     st.success('추출 완료')
+                                    with open(f'{session_username}_files/{name}_remote_comm.json', 'r') as file:
+                                        file_data = file.read()
+                                    st.download_button(label='추출파일 다운로드', data=file_data, file_name='remote_comm.json',
+                                                       mime="application/json")
+                            with open('./inventory_remote.exe', "rb") as f:
+                                binary_file = f.read()
+                            st.download_button(label="실행기", data=binary_file, file_name="inventory_remote.exe",
+                                               mime="application/octet-stream")
                         else:
                             st.warning('등록된 인벤토리가 없습니다.')
 
