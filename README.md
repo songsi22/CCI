@@ -1,8 +1,8 @@
 # CCI - Corea Cloud Inventory
-한국 3사 CSP 사(KTC,NHN,NCP) 의 API 를 사용하여 inventory 를 만드는 프로젝트 입니다.</br>
-inventory 를 만드는데 있어 API 에만 의존하지 않고 운영체제에서의 정보를 토대로 하나의 완성된 inventory 를 만들고</br>
-inventory 파일을 토대로 웹 대시보드를 만들고자 합니다.</br>
-LLM chat 기능을 통해 inventory 의 정보를 활용합니다.</br>
+한국 3사 CSP 사(KTC,NHN,NCP) 의 API 를 사용하여 inventory 를 만드는 프로젝트 입니다.  
+inventory 를 만드는데 있어 API 에만 의존하지 않고 운영체제에서의 정보를 토대로 하나의 완성된 inventory 를 만들고  
+inventory 파일을 토대로 웹 대시보드를 만들고자 합니다.  
+~~LLM chat 기능을 통해 inventory 의 정보를 활용합니다.~~
 
 1. CSP 제공 API를 활용하여 최소 정보 수집[본 코드에서는 zone, VM 생성날짜, VM 상태, 공인IP, 사설IP 정도 수집](가장 중요한 것은 IP 정보)
 ~~2. 수집된 IP를 토대로 ansible-playbook 으로 OS 정보 수집~~ => 대부분의 VM이 VPN 을 통해서 접속하기 때문에 고려해야하는 내용이 많아 쉽지 않음(VPN이 설치되고 실행되는 윈도우 환경에서는 파이썬을 통한 ansible 활용 어려움)
