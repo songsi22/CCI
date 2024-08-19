@@ -259,7 +259,11 @@ authenticator.login()
 if st.session_state['authentication_status']:
     session_username = st.session_state['username']
     with st.sidebar:
-        authenticator.logout()
+        col1,col2 = st.columns(2)
+        with col1:
+            st.subheader(f'사용자: {session_username}')
+        with col2:
+            authenticator.logout()
         choice = option_menu("Menu", ["인벤토리", "고객사 관리", "인벤토리 관리"],
                              icons=['file-bar-graph', 'people-fill', 'files'],
                              menu_icon="app-indicator", default_index=0,
