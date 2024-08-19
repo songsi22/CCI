@@ -9,7 +9,7 @@ def data_to_excel(inventories, csp_type, path, cday, customer=''):
                          right=Side(style='thin'),
                          top=Side(style='thin'),
                          bottom=Side(style='thin'))
-    wb = load_workbook('./template.xlsx')
+    wb = load_workbook('files/template.xlsx')
     ws = wb.active
     for i, inventory in enumerate(inventories):
         ext_ssd = 0
@@ -47,13 +47,13 @@ def data_to_excel(inventories, csp_type, path, cday, customer=''):
         for uppercase in string.ascii_uppercase[:-10]:
             ws[f'{uppercase}{i + 5}'].border = thin_border
             ws[f'{uppercase}{i + 5}'].alignment = Alignment(horizontal='center', vertical='center')
-    wb.save(f'./{path}_files/{customer}-{csp_type}-inventory-{cday}.xlsx')
+    wb.save(f'files/{path}_files/{customer}-{csp_type}-inventory-{cday}.xlsx')
 
 
 def write_to_file(type, csp_type, customer, path, cday, ctime, filename=''):
     if type == 'API':
-        with open(f'{path}_custom/{customer}', 'a+', encoding='utf-8') as f:
+        with open(f'files/{path}_custom/{customer}', 'a+', encoding='utf-8') as f:
             f.write(f'{customer}-{csp_type}-inventory-{cday}.xlsx,{cday}{ctime}\n')
     else:
-        with open(f'{path}_custom/{customer}', 'a+', encoding='utf-8') as f:
+        with open(f'files/{path}_custom/{customer}', 'a+', encoding='utf-8') as f:
             f.write(f'{filename},{cday}{ctime}\n')

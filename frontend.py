@@ -115,24 +115,24 @@ def manage_inventory(session: str):
         else:
             st.warning('등록된 고객이 없습니다.')
     with manual:
-        customers = os.listdir(f'{session_username}_custom')
+        customers = os.listdir(f'files/{session_username}_custom')
         if customers:
             name = st.selectbox(label='고객명', options=customers, key='manual')
             col1, col2 = st.columns([1, 6])
             with col1:
-                with open('./template.xlsx', 'rb') as file:
+                with open('files/template.xlsx', 'rb') as file:
                     file_data = file.read()
-                st.download_button(label='템플릿 다운로드', data=file_data, file_name='template.xlsx',
+                st.download_button(label='템플릿 다운로드', data=file_data, file_name='files/template.xlsx',
                                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
             with col2:
                 upload_template = st.file_uploader(label='파일 업로드', type='xlsx')
             if st.button(label='등록', key='col1'):
                 if all([name, upload_template]):
                     with st.spinner('진행 중'):
-                        save_path = os.path.join(f"{session_username}_files", upload_template.name)
+                        save_path = os.path.join(f"files/{session_username}_files", upload_template.name)
                         with open(save_path, "wb") as f:
                             f.write(upload_template.getbuffer())
-                        with open(f'{session_username}_custom/{name}', 'a+', encoding='utf-8') as f:
+                        with open(f'files/{session_username}_custom/{name}', 'a+', encoding='utf-8') as f:
                             create_day_in_file = datetime.now().strftime("%Y%m%d")
                             create_time_in_file = datetime.now().strftime("%H%M")
                             f.write(f'{upload_template.name},{create_day_in_file}{create_time_in_file}\n')
@@ -142,12 +142,12 @@ def manage_inventory(session: str):
         else:
             st.warning('등록된 고객이 없습니다.')
         with remote_comm:
-            customers = os.listdir(f'{session_username}_custom')
+            customers = os.listdir(f'files/{session_username}_custom')
             if customers:
                 name = st.selectbox(label='고객명', options=customers, key='remote_comm', index=None,
                                     placeholder='고객사를 선택해주세요')
                 if name:
-                    with open(f'{session_username}_custom/{name}', 'r', encoding='utf-8') as f:
+                    with open(f'files/{session_username}_custom/{name}', 'r', encoding='utf-8') as f:
                         lines = f.readlines()
                         if len(lines) != 0:
                             flines = lines[-1].strip()
@@ -160,14 +160,14 @@ def manage_inventory(session: str):
                                         orient='records')
                                     command_df_dict.append({'filename': filename})
                                     command_df_dict.append({'user': session_username})
-                                    with open(f'{session_username}_files/{name}_remote_comm.json', 'w') as f:
+                                    with open(f'files/{session_username}_files/{name}_remote_comm.json', 'w') as f:
                                         f.write(json.dumps(command_df_dict))
                                     st.success('추출 완료')
-                                    with open(f'{session_username}_files/{name}_remote_comm.json', 'r') as file:
+                                    with open(f'files/{session_username}_files/{name}_remote_comm.json', 'r') as file:
                                         file_data = file.read()
                                     st.download_button(label='추출파일 다운로드', data=file_data, file_name='remote_comm.json',
                                                        mime="application/json")
-                            with open('./inventory_remote.exe', "rb") as f:
+                            with open('files/inventory_remote.exe', "rb") as f:
                                 binary_file = f.read()
                             st.download_button(label="실행기", data=binary_file, file_name="inventory_remote.exe",
                                                mime="application/octet-stream")
@@ -181,23 +181,23 @@ def manage_customer(session: str):
     with create:
         customer = st.text_input('고객사명', key='customer').strip()
         if customer:
-            if os.path.exists(f'{session_username}_custom/{customer}'):
+            if os.path.exists(f'files/{session_username}_custom/{customer}'):
                 st.warning(f'{customer}은 존재합니다.')
         if st.button(label='등록', key='create'):
             if not customer:  # 고객사명이 공백일 경우
                 st.warning('고객사명을 입력해 주세요.')
             else:
                 with st.spinner('진행 중'):
-                    with open(f'{session_username}_custom/{customer}', 'w') as f:
+                    with open(f'files/{session_username}_custom/{customer}', 'w') as f:
                         pass
                     st.success(f'{customer} 고객 등록 완료')
 
     with delete:
-        customers = os.listdir(f'{session_username}_custom')
+        customers = os.listdir(f'files/{session_username}_custom')
         if customers:
             selected = st.selectbox(label='고객명', options=customers, key='delete')
             if st.button('삭제'):
-                os.remove(f'{session_username}_custom/{selected}')
+                os.remove(f'files/{session_username}_custom/{selected}')
                 st.rerun()
         else:
             st.warning('등록된 고객이 없습니다.')
@@ -205,17 +205,17 @@ def manage_customer(session: str):
 
 def front(session: str):
     session_username = session
-    if not os.path.exists(f"{st.session_state['username']}_custom"):
-        os.makedirs(f"{st.session_state['username']}_custom")
-    if not os.path.exists(f"{st.session_state['username']}_files"):
-        os.makedirs(f"{st.session_state['username']}_files")
-    customers = os.listdir(f'{session_username}_custom')
+    if not os.path.exists(f"files/{st.session_state['username']}_custom"):
+        os.makedirs(f"files/{st.session_state['username']}_custom")
+    if not os.path.exists(f"files/{st.session_state['username']}_files"):
+        os.makedirs(f"files/{st.session_state['username']}_files")
+    customers = os.listdir(f'files/{session_username}_custom')
     df = None
     if customers:
         options = st.multiselect(options=customers, label='고객사 선택', default=customers, placeholder='고객사를 선택하세요.', )
         for customer in options:
             filename = None
-            with open(f'{session_username}_custom/{customer}', 'r', encoding='utf-8') as f:
+            with open(f'files/{session_username}_custom/{customer}', 'r', encoding='utf-8') as f:
                 lines = f.readlines()
                 if len(lines) != 0:
                     flines = lines[-1].strip()
