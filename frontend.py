@@ -205,10 +205,10 @@ def manage_customer(session: str):
 
 def front(session: str):
     session_username = session
-    if not os.path.exists(f"files/{st.session_state['username']}_custom"):
-        os.makedirs(f"files/{st.session_state['username']}_custom")
-    if not os.path.exists(f"files/{st.session_state['username']}_files"):
-        os.makedirs(f"files/{st.session_state['username']}_files")
+    if not os.path.exists(f"files/{session_username}_custom"):
+        os.makedirs(f"files/{session_username}_custom")
+    if not os.path.exists(f"files/{session_username}_files"):
+        os.makedirs(f"files/{session_username}_files")
     customers = os.listdir(f'files/{session_username}_custom')
     df = None
     if customers:
