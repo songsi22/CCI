@@ -10,7 +10,7 @@ def ssh_template_update(user, filename, servers):
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     ssh.connect('serverip', username='user', pkey=private_key)
     sftp = ssh.open_sftp()
-    remote_excel_path = f'files/{user}_files/{filename}'
+    remote_excel_path = f'/home/user/CCI/files/{user}_files/{filename}'
     local_excel_path = f'./{filename}'
     sftp.get(remote_excel_path, local_excel_path)
 
