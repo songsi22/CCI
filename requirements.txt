@@ -1,6 +1,7 @@
 openpyxl
 requests
 pandas
+streamlit
 streamlit-keyup
 streamlit-option-menu
 streamlit-authenticator==0.3.2
