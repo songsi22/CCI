@@ -60,10 +60,10 @@ def manage_inventory(session: str):
             elif 'NHN' in csp_dict[csp_type]:
                 if 'G' not in csp_dict[csp_type]:
                     zones = ['kr1', 'kr2','jp1']
-                    zone = st.radio(label='Zone', options=zones, key='ktczone', horizontal=True)
+                    zone = st.radio(label='Zone', options=zones, key='nhnzone', horizontal=True)
                 else:
                     zones = ['kr1', 'kr2']
-                    zone = st.radio(label='Zone', options=zones, key='ktczone', horizontal=True)
+                    zone = st.radio(label='Zone', options=zones, key='nhnzone', horizontal=True)
                 tenantid = st.text_input('Tenant ID', placeholder='API endpoint tenantid').strip()
                 username = st.text_input('Username', placeholder='root@mail.com').strip()
                 password = st.text_input('Password', placeholder='API endpoint password', type="password").strip()
@@ -85,6 +85,7 @@ def manage_inventory(session: str):
                         st.warning('모든 입력을 완료해주세요.')
 
             elif 'KTC' in csp_dict[csp_type]:
+                zone=None
                 if 'G' not in csp_dict[csp_type]:
                     zones = ['d1', 'd2', 'd3']
                     zone = st.radio(label='Zone', options=zones, key='ktczone', horizontal=True)
@@ -152,13 +153,7 @@ def manage_inventory(session: str):
                             flines = lines[-1].strip()
                             filename = flines.split(',')[0]
                             df = read_customer_file(filename=filename, userid=session_username)
-                            command_df = st.data_editor(df, column_config={
-                                "selected": st.column_config.CheckboxColumn(
-                                    "selected",
-                                    default=False,
-                                )
-                            }, )
-                            print(command_df[command_df['selected'] == True])
+                            command_df = st.data_editor(df)
                             if st.button(label='추출'):
                                 with st.spinner('진행 중'):
                                     command_df_dict = command_df[(command_df['user'] != '') & (command_df['password'] != '')].to_dict(
