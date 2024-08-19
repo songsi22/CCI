@@ -30,7 +30,7 @@ csp_dict = {'민간NCP[VPC]': 'NCP', '공공NCP[VPC]': 'NCPG', '민간KTC[@D]': 
 
 def manage_inventory(session: str):
     session_username = session
-    customers = os.listdir(f'{session_username}_custom')
+    customers = os.listdir(f'files/{session_username}_custom')
     auto, manual, remote_comm = st.tabs(['자동', '수동', '명령어 수집'])
     with auto:
         if customers:
