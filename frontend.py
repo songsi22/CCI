@@ -161,7 +161,7 @@ def manage_inventory(session: str):
                             print(command_df[command_df['selected'] == True])
                             if st.button(label='추출'):
                                 with st.spinner('진행 중'):
-                                    command_df_dict = command_df[command_df['selected'] == True].to_dict(
+                                    command_df_dict = command_df[(command_df['user'] != '') & (command_df['password'] != '')].to_dict(
                                         orient='records')
                                     command_df_dict.append({'filename': filename})
                                     command_df_dict.append({'user': session_username})
@@ -226,7 +226,6 @@ def front(session: str):
                     flines = lines[-1].strip()
                     filename = flines.split(',')[0]
                     createdtime = flines.split(',')[1]
-                    createdtime = datetime.strptime(createdtime, "%Y%m%d%H%M").strftime("%Y년 %m월 %d일 %H시 %M분")
             if filename is not None and 'xlsx' in filename:
                 userid = f'{session_username}'
                 if len(options) == 1:
