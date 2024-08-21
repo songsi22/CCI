@@ -220,7 +220,6 @@ def front(session: str):
                 if len(lines) != 0:
                     flines = lines[-1].strip()
                     filename = flines.split(',')[0]
-                    createdtime = flines.split(',')[1]
             if filename is not None and 'xlsx' in filename:
                 userid = f'{session_username}'
                 if len(options) == 1:
