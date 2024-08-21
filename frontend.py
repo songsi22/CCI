@@ -15,8 +15,13 @@ from yaml.loader import SafeLoader
 
 st.set_page_config(layout="wide", page_title='Inventory')
 
-with open('./config.yaml') as file:
-    config = yaml.load(file, Loader=SafeLoader)
+
+def load_config():
+    with open('./config.yaml') as file:
+        return yaml.load(file, Loader=SafeLoader)
+
+
+config = load_config()
 authenticator = stauth.Authenticate(
     config['credentials'],
     config['cookie']['name'],
@@ -25,11 +30,52 @@ authenticator = stauth.Authenticate(
     config['pre-authorized']
 )
 
-csp_dict = {'민간NCP[VPC]': 'NCP', '공공NCP[VPC]': 'NCPG', '민간KTC[@D]': 'KTC', '공공KTC[@D]': 'KTCG', '민간NHN': 'NHN',
-            '공공NHN': 'NHNG'}
+csp_dict = {'민간NCP[VPC]': 'NCP', '공공NCP[VPC]': 'NCPG',
+            '민간KTC[@D]': 'KTC', '공공KTC[@D]': 'KTCG',
+            '민간NHN': 'NHN', '공공NHN': 'NHNG'
+            }
+
+
+def get_current_datetime():
+    """
+    현재 날짜와 시간을 반환하는 함수.
+
+    Returns:
+        tuple: 현재 날짜(YYYYMMDD)와 시간(HHMM) 문자열의 튜플.
+    """
+    now = datetime.now()
+    return now.strftime("%Y%m%d"), now.strftime("%H%M")
+
+
+def handle_inventory_save(csp, csp_type, customer, session_username):
+    """
+    수집된 인벤토리 데이터를 엑셀 파일로 저장하고 기록 파일에 정보를 기록하는 함수.
+
+    Args:
+        csp: CSP 객체.
+        csp_type (str): CSP 유형.
+        customer (str): 고객명.
+        session_username (str): 현재 세션의 사용자 이름.
+    """
+    create_day_in_file, create_time_in_file = get_current_datetime()
+    data_to_excel(csp.get_inventory(), csp_type=csp_type, customer=customer,
+                  path=f'{session_username}', cday=create_day_in_file)
+    write_to_file(type='API', customer=customer, csp_type=csp_type,
+                  path=f'{session_username}', cday=create_day_in_file, ctime=create_time_in_file)
+    st.success(f'{customer} 등록 완료. 인벤토리에서 확인하세요')
 
 
 def manage_inventory(session: str):
+    """
+        고객 인벤토리를 관리하는 함수.
+
+        사용자는 고객을 선택하고 CSP 유형에 따라 API 키 또는 사용자 정보를 입력하여
+        인벤토리를 수집할 수 있습니다. 수집된 데이터는 엑셀 파일로 저장되고,
+        기록 파일에도 해당 정보가 기록됩니다.
+
+        Args:
+            session (str): 현재 세션의 사용자 이름.
+        """
     session_username = session
     customers = os.listdir(f'files/{session_username}_custom')
     auto, manual, remote_comm = st.tabs(['자동', '수동', '명령어 수집'])
@@ -45,17 +91,9 @@ def manage_inventory(session: str):
                 if st.button(label='API를 통한 수집', key='ncpb'):
                     if all([name, access_key, secret_key]):
                         with st.spinner('진행 중'):
-                            create_day_in_file = datetime.now().strftime("%Y%m%d")
-                            create_time_in_file = datetime.now().strftime("%H%M")
                             csp = CSPFactory.get_csp(csp_type=csp_dict[csp_type], access_key=access_key,
                                                      secret_key=secret_key)
-                            data_to_excel(csp.get_inventory(), csp_type=csp_dict[csp_type], customer=name,
-                                          path=f'{session_username}',
-                                          cday=create_day_in_file)
-                            write_to_file(type='API', customer=name, csp_type=csp_dict[csp_type],
-                                          path=f'{session_username}',
-                                          cday=create_day_in_file, ctime=create_time_in_file)
-                            st.success(f'{name} 등록 완료. 인벤토리에서 확인하세요')
+                            handle_inventory_save(csp, csp_dict[csp_type], name, session_username)
                     else:
                         st.warning('모든 입력을 완료해주세요.')
 
@@ -72,17 +110,9 @@ def manage_inventory(session: str):
                 if st.button(label='API를 통한 수집', key='nhnb'):
                     if all([name, tenantid, username, password]):
                         with st.spinner('진행 중'):
-                            create_day_in_file = datetime.now().strftime("%Y%m%d")
-                            create_time_in_file = datetime.now().strftime("%H%M")
                             csp = CSPFactory.get_csp(csp_type=csp_dict[csp_type], tenantid=tenantid, username=username,
                                                      password=password, zone=zone)
-                            data_to_excel(csp.get_inventory(), csp_type=csp_dict[csp_type], customer=name,
-                                          path=f'{session_username}',
-                                          cday=create_day_in_file)
-                            write_to_file(type='API', customer=name, csp_type=csp_dict[csp_type],
-                                          path=f'{session_username}',
-                                          cday=create_day_in_file, ctime=create_time_in_file)
-                            st.success(f'{name} 등록 완료. 인벤토리에서 확인하세요')
+                            handle_inventory_save(csp, csp_dict[csp_type], name, session_username)
                     else:
                         st.warning('모든 입력을 완료해주세요.')
 
@@ -95,21 +125,13 @@ def manage_inventory(session: str):
                 password = st.text_input('Password', placeholder='root\'s password', type="password").strip()
                 if st.button(label='API를 통한 수집', key='ktcb'):
                     if all([name, username, password]):
-                        create_day_in_file = datetime.now().strftime("%Y%m%d")
-                        create_time_in_file = datetime.now().strftime("%H%M")
                         with st.spinner('진행 중'):
                             if zone:
                                 csp = CSPFactory.get_csp(csp_dict[csp_type], username=username, password=password,
                                                          zone=zone)
                             else:
                                 csp = CSPFactory.get_csp(csp_dict[csp_type], username=username, password=password)
-                            data_to_excel(csp.get_inventory(), csp_type=csp_dict[csp_type], customer=name,
-                                          path=f'{session_username}',
-                                          cday=create_day_in_file)
-                            write_to_file(type='API', customer=name, csp_type=csp_dict[csp_type],
-                                          path=f'{session_username}',
-                                          cday=create_day_in_file, ctime=create_time_in_file)
-                            st.success(f'{name} 등록 완료. 인벤토리에서 확인하세요')
+                            handle_inventory_save(csp, csp_dict[csp_type], name, session_username)
                     else:
                         st.warning('모든 입력을 완료해주세요.')
 
@@ -117,7 +139,6 @@ def manage_inventory(session: str):
         else:
             st.warning('등록된 고객이 없습니다.')
     with manual:
-        customers = os.listdir(f'files/{session_username}_custom')
         if customers:
             name = st.selectbox(label='고객명', options=customers, key='manual')
             col1, col2 = st.columns([1, 6])
@@ -135,20 +156,19 @@ def manage_inventory(session: str):
                         with open(save_path, "wb") as f:
                             f.write(upload_template.getbuffer())
                         with open(f'files/{session_username}_custom/{name}', 'a+', encoding='utf-8') as f:
-                            create_day_in_file = datetime.now().strftime("%Y%m%d")
-                            create_time_in_file = datetime.now().strftime("%H%M")
+                            create_day_in_file, create_time_in_file = get_current_datetime()
                             f.write(f'{upload_template.name},{create_day_in_file}{create_time_in_file}\n')
                         st.success(f'{name} 등록 완료. 인벤토리에서 확인하세요')
                 else:
                     st.warning('파일을 업로드 해주세요.')
         else:
             st.warning('등록된 고객이 없습니다.')
-        with remote_comm:
-            customers = os.listdir(f'files/{session_username}_custom')
-            if customers:
-                name = st.selectbox(label='고객명', options=customers, key='remote_comm', index=None,
-                                    placeholder='고객사를 선택해주세요')
-                if name:
+    with remote_comm:
+        if customers:
+            name = st.selectbox(label='고객명', options=customers, key='remote_comm', index=None,
+                                placeholder='고객사를 선택해주세요')
+            if name:
+                try:
                     with open(f'files/{session_username}_custom/{name}', 'r', encoding='utf-8') as f:
                         lines = f.readlines()
                         if len(lines) != 0:
@@ -176,61 +196,102 @@ def manage_inventory(session: str):
                                                mime="application/octet-stream")
                         else:
                             st.warning('등록된 인벤토리가 없습니다.')
+                except Exception as e:
+                    st.error(f'오류 발생: {str(e)}')
+        else:
+            st.warning('등록된 고객이 없습니다.')
 
 
 def manage_customer(session: str):
+    """
+    고객 관리 기능을 제공하는 함수.
+
+    사용자는 새로운 고객을 등록하거나 기존 고객을 삭제할 수 있습니다.
+    고객 목록은 세션 사용자에 따라 관리됩니다.
+
+    Args:
+        session (str): 현재 세션의 사용자 이름.
+    """
     session_username = session
     create, delete = st.tabs(['등록', '삭제'])
     with create:
         customer = st.text_input('고객사명', key='customer').strip()
-        if customer:
-            if os.path.exists(f'files/{session_username}_custom/{customer}'):
-                st.warning(f'{customer}은 존재합니다.')
+        if customer and os.path.exists(f'files/{session_username}_custom/{customer}'):
+            st.warning(f'{customer}은 존재합니다.')
         if st.button(label='등록', key='create'):
             if not customer:  # 고객사명이 공백일 경우
                 st.warning('고객사명을 입력해 주세요.')
             else:
-                with st.spinner('진행 중'):
-                    with open(f'files/{session_username}_custom/{customer}', 'w') as f:
-                        pass
-                    st.success(f'{customer} 고객 등록 완료')
+                try:
+                    with st.spinner('진행 중'):
+                        with open(f'files/{session_username}_custom/{customer}', 'w') as f:
+                            pass
+                        st.success(f'{customer} 고객 등록 완료')
+                except Exception as e:
+                    st.error(f'오류 발생: {str(e)}')
 
     with delete:
         customers = os.listdir(f'files/{session_username}_custom')
         if customers:
             selected = st.selectbox(label='고객명', options=customers, key='delete')
             if st.button('삭제'):
-                os.remove(f'files/{session_username}_custom/{selected}')
-                st.rerun()
+                try:
+                    os.remove(f'files/{session_username}_custom/{selected}')
+                    st.rerun()
+                except Exception as e:
+                    st.error(f'오류 발생: {str(e)}')
         else:
             st.warning('등록된 고객이 없습니다.')
 
 
 def front(session: str):
+    """
+    고객의 인벤토리를 보여주는 함수.
+
+    사용자는 고객사를 선택하고, 선택된 고객사의 인벤토리 데이터를 필터링하여
+    화면에 표시할 수 있습니다.
+
+    Args:
+        session (str): 현재 세션의 사용자 이름.
+    """
     session_username = session
-    if not os.path.exists(f"files/{session_username}_custom"):
-        os.makedirs(f"files/{session_username}_custom")
-    if not os.path.exists(f"files/{session_username}_files"):
-        os.makedirs(f"files/{session_username}_files")
+
+    try:
+        if not os.path.exists(f"files/{session_username}_custom"):
+            os.makedirs(f"files/{session_username}_custom")
+        if not os.path.exists(f"files/{session_username}_files"):
+            os.makedirs(f"files/{session_username}_files")
+    except Exception as e:
+        st.error(f'디렉토리 생성 중 오류 발생: {str(e)}')
+        return
+
     customers = os.listdir(f'files/{session_username}_custom')
     df = None
     if customers:
         options = st.multiselect(options=customers, label='고객사 선택', default=customers, placeholder='고객사를 선택하세요.', )
         for customer in options:
             filename = None
-            with open(f'files/{session_username}_custom/{customer}', 'r', encoding='utf-8') as f:
-                lines = f.readlines()
-                if len(lines) != 0:
-                    flines = lines[-1].strip()
-                    filename = flines.split(',')[0]
+            try:
+                with open(f'files/{session_username}_custom/{customer}', 'r', encoding='utf-8') as f:
+                    lines = f.readlines()
+                    if len(lines) != 0:
+                        flines = lines[-1].strip()
+                        filename = flines.split(',')[0]
+            except Exception as e:
+                st.error(f'파일 읽기 중 오류 발생: {str(e)}')
+                continue
+
             if filename is not None and 'xlsx' in filename:
                 userid = f'{session_username}'
-                if len(options) == 1:
-                    df = read_template(userid=userid, customer=customer, filename=filename)
-                elif len(options) > 1:
-                    df2 = read_template(userid=userid, customer=customer, filename=filename)
-                    df = pd.concat([df, df2], axis=0, ignore_index=True)
-                df.fillna('', inplace=True)
+                try:
+                    if len(options) == 1:
+                        df = read_template(userid=userid, customer=customer, filename=filename)
+                    elif len(options) > 1:
+                        df2 = read_template(userid=userid, customer=customer, filename=filename)
+                        df = pd.concat([df, df2], axis=0, ignore_index=True)
+                    df.fillna('', inplace=True)
+                except Exception as e:
+                    st.error(f'데이터 처리 중 오류 발생: {str(e)}')
             else:
                 st.warning(f'{customer}은 현재 인벤토리가 없습니다. 인벤토리 관리를 통해 등록하세요')
     else:
@@ -260,7 +321,7 @@ if st.session_state['authentication_status']:
             st.subheader(f'사용자: {session_username}')
         with col2:
             authenticator.logout()
-        choice = option_menu("Menu", ["인벤토리", "고객사 관리", "인벤토리 관리"],
+        choice = option_menu("메뉴", ["인벤토리", "고객사 관리", "인벤토리 관리"],
                              icons=['file-bar-graph', 'people-fill', 'files'],
                              menu_icon="app-indicator", default_index=0,
                              styles={

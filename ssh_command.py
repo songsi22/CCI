@@ -2,23 +2,36 @@ import time
 import re
 import paramiko
 
-systems_info = {}
 
+def get_server_info(hostname, user, password, port=22) -> dict:
+    """
+    SSH를 통해 서버에 접속하여 시스템 정보를 수집하는 함수.
 
-def get_server_info(hostname, user, password, port=22):
+    Args:
+        hostname (str): 서버의 호스트 이름 또는 IP 주소.
+        user (str): SSH 로그인 사용자 이름.
+        password (str): SSH 로그인 비밀번호.
+        port (int): SSH 포트 (기본값은 22).
+
+    Returns:
+        dict: 수집된 시스템 정보가 포함된 사전.
+    """
+    ssh = paramiko.SSHClient()
+    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+
     try:
-        ssh = paramiko.SSHClient()
-        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         ssh.connect(hostname=hostname, port=port, username=user, password=password)
         shell = ssh.invoke_shell()
         shell.send(
             "echo START;"
             "echo OS:`hostnamectl | grep 'Operating System:' | awk -F': ' '{print $2}' | sed 's/ Linux//' | sed 's/ (.*)//' | sed 's/ LTS//'`;"
             "echo HOSTNAME:`hostname`;"
-            "echo SWAP:`free -k|grep -i swap|awk '{print int($2/1024/1024+0.5)}'`; echo Mount Point:`grep ^[A-Z,a-z,/] /etc/fstab|egrep -v 'swap|boot' | awk '$2 != \"/\" {print $2}'`;"
+            "echo SWAP:`free -k|grep -i swap|awk '{print int($2/1024/1024+0.5)}'`; "
+            "echo Mount Point:`grep ^[A-Z,a-z,/] /etc/fstab|egrep -v 'swap|boot' | awk '$2 != \"/\" {print $2}'`;"
             "echo NAS:`df -k | grep ^[1,2]|awk '{print int($2/1024/1024+0.5),$6}'`;"
             "echo IPs:`hostname -I`;"
-            "echo END\n")
+            "echo END\n"
+        )
 
         time.sleep(1.3)  # 명령어가 실행될 시간을 줌
 
@@ -44,53 +57,52 @@ def get_server_info(hostname, user, password, port=22):
         ssh.close()
 
 
-def parse_system_info(data: str):
+def parse_system_info(data: str) -> dict:
+    """
+    서버에서 수집한 시스템 정보를 파싱하는 함수.
 
-    os_match = re.search(r'OS:\S+\s+\S+', data)
-    os_info = os_match.group(0).split('OS:')[1] if os_match else "Unknown"
+    Args:
+        data (str): 수집된 원시 시스템 정보.
 
-    hostname_match = re.search(r'HOSTNAME:([^\n]+)', data)
-    hostname = hostname_match.group(1) if hostname_match else ""
+    Returns:
+        dict: 파싱된 시스템 정보가 포함된 사전.
+    """
+    os_info = re.search(r'OS:(.+)', data)
+    hostname = re.search(r'HOSTNAME:(.+)', data)
+    swap_size = re.search(r'SWAP:(.+)', data)
+    mount_points = re.search(r'Mount Point:(.+)', data)
+    nas_data = re.search(r'NAS:(.+)', data)
+    ip_list = re.search(r'IPs:(.+)', data)
 
-    # Swap 정보 추출
-    swap_match = re.search(r'SWAP:([^\n]+)', data)
-    swap_size = "" if swap_match and swap_match.group(1) == "0" else swap_match.group(1)
-
-    mp_match = re.search(r'Mount Point:*([^\n]+)', data)
-    if mp_match:
-        mp_list = mp_match.group(1).split() if mp_match else []
-    else:
-        mp_list = ''
-    # NAS 정보 추출
-    nas_match = re.search(r'NAS:*([^\n]+)', data)
-    nas_data = nas_match.group(0).split("NAS:")[1].strip()
-    nas_size = re.findall(r'\d+(?:\.\d+)?', nas_data)
-    nas_point = re.findall(r'/\S+', nas_data)
-    mountpoint = mp_list+nas_point
-    # IP 정보 추출
-    ip_match = re.search(r'IPs:*([^\n]+)', data)
-    if ip_match:
-        ip_list = ip_match.group(1).split() if ip_match else []
-    else:
-        ip_list = ''
     system_info = {
-        ip_list[0]: {
-            "OS": os_info,
-            "hostname": hostname,
-            "swap": swap_size,
-            "MountPoint": mountpoint,
-            "NASsize": nas_size,
-            "IPs": ip_list
-        }
+        "OS": os_info.group(1).strip() if os_info else "Unknown",
+        "hostname": hostname.group(1).strip() if hostname else "Unknown",
+        "swap": swap_size.group(1).strip() if swap_size else "",
+        "MountPoint": mount_points.group(1).strip().split() if mount_points else [],
+        "NASsize": re.findall(r'\d+(?:\.\d+)?', nas_data.group(1)) if nas_data else [],
+        "IPs": ip_list.group(1).strip().split() if ip_list else []
     }
-    systems_info.update(system_info)
+
+    return system_info
 
 
 def get_system_info(servers: list) -> dict:
+    """
+    주어진 서버 리스트에서 시스템 정보를 수집하는 함수.
+
+    Args:
+        servers (list): 서버 정보가 포함된 리스트.
+
+    Returns:
+        dict: 모든 서버의 시스템 정보가 포함된 사전.
+    """
+    systems_info = {}
     for server in servers:
         hostname = server['ip']
         user = server['user']
         password = server['password']
         port = server['port']
-        get_server_info(hostname=hostname, port=port, user=user, password=password)
+        system_info = get_server_info(hostname=hostname, port=port, user=user, password=password)
+        if system_info:
+            systems_info.update(system_info)
     return systems_info
