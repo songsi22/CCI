@@ -25,7 +25,8 @@ authenticator = stauth.Authenticate(
     config['pre-authorized']
 )
 
-csp_dict = {'민간NCP[VPC]': 'NCP', '공공NCP[VPC]': 'NCPG', '민간KTC[@D]': 'KTC', '공공KTC[@D]': 'KTCG', '민간NHN': 'NHN', '공공NHN': 'NHNG'}
+csp_dict = {'민간NCP[VPC]': 'NCP', '공공NCP[VPC]': 'NCPG', '민간KTC[@D]': 'KTC', '공공KTC[@D]': 'KTCG', '민간NHN': 'NHN',
+            '공공NHN': 'NHNG'}
 
 
 def manage_inventory(session: str):
@@ -36,7 +37,8 @@ def manage_inventory(session: str):
         if customers:
             name = st.selectbox(label='고객명', options=customers, key='auto')
             csp_type = st.radio(label='CSP 선택',
-                                options=['민간NCP[VPC]', '공공NCP[VPC]', '민간KTC[@D]', '공공KTC[@D]', '민간NHN', '공공NHN'], horizontal=True)
+                                options=['민간NCP[VPC]', '공공NCP[VPC]', '민간KTC[@D]', '공공KTC[@D]', '민간NHN', '공공NHN'],
+                                horizontal=True)
             if 'NCP' in csp_dict[csp_type]:
                 access_key = st.text_input('Access Key', placeholder='API access Key').strip()
                 secret_key = st.text_input('Secret Key', placeholder='API secret Key', type="password").strip()
@@ -59,7 +61,7 @@ def manage_inventory(session: str):
 
             elif 'NHN' in csp_dict[csp_type]:
                 if 'G' not in csp_dict[csp_type]:
-                    zones = ['kr1', 'kr2','jp1']
+                    zones = ['kr1', 'kr2', 'jp1']
                     zone = st.radio(label='Zone', options=zones, key='nhnzone', horizontal=True)
                 else:
                     zones = ['kr1', 'kr2']
@@ -73,7 +75,7 @@ def manage_inventory(session: str):
                             create_day_in_file = datetime.now().strftime("%Y%m%d")
                             create_time_in_file = datetime.now().strftime("%H%M")
                             csp = CSPFactory.get_csp(csp_type=csp_dict[csp_type], tenantid=tenantid, username=username,
-                                                     password=password,zone=zone)
+                                                     password=password, zone=zone)
                             data_to_excel(csp.get_inventory(), csp_type=csp_dict[csp_type], customer=name,
                                           path=f'{session_username}',
                                           cday=create_day_in_file)
@@ -85,7 +87,7 @@ def manage_inventory(session: str):
                         st.warning('모든 입력을 완료해주세요.')
 
             elif 'KTC' in csp_dict[csp_type]:
-                zone=None
+                zone = None
                 if 'G' not in csp_dict[csp_type]:
                     zones = ['d1', 'd2', 'd3']
                     zone = st.radio(label='Zone', options=zones, key='ktczone', horizontal=True)
@@ -156,7 +158,8 @@ def manage_inventory(session: str):
                             command_df = st.data_editor(df)
                             if st.button(label='추출'):
                                 with st.spinner('진행 중'):
-                                    command_df_dict = command_df[(command_df['user'] != '') & (command_df['password'] != '')].to_dict(
+                                    command_df_dict = command_df[
+                                        (command_df['user'] != '') & (command_df['password'] != '')].to_dict(
                                         orient='records')
                                     command_df_dict.append({'filename': filename})
                                     command_df_dict.append({'user': session_username})
@@ -228,7 +231,6 @@ def front(session: str):
                     df2 = read_template(userid=userid, customer=customer, filename=filename)
                     df = pd.concat([df, df2], axis=0, ignore_index=True)
                 df.fillna('', inplace=True)
-                # df = df.map(lambda x: int(x) if isinstance(x, float) else x)
             else:
                 st.warning(f'{customer}은 현재 인벤토리가 없습니다. 인벤토리 관리를 통해 등록하세요')
     else:
@@ -253,7 +255,7 @@ authenticator.login()
 if st.session_state['authentication_status']:
     session_username = st.session_state['username']
     with st.sidebar:
-        col1,col2 = st.columns(2)
+        col1, col2 = st.columns(2)
         with col1:
             st.subheader(f'사용자: {session_username}')
         with col2:
