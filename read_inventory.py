@@ -7,14 +7,14 @@ def read_template(filename, customer, userid):
                               'OSDISK[HDD]', 'OSDISK[SSD]', 'SWAP',
                               'EXTDISK[HDD]', 'EXTDISK[SSD]', 'NAS',
                               'Mount Point', '공인IP', '사설IP', 'VM생성날짜',
-                              'VM상태'])
+                              'VM상태'],dtype=object)
     df.insert(0, '고객사', customer)
     return df
 
 
 def read_customer_file(filename, userid):
     df = pd.read_excel(f'files/{userid}_files/{filename}', usecols=[1, 13], skiprows=4, index_col=None, header=None,
-                       names=['hostname', 'ip'])
+                       names=['hostname', 'ip'],dtype=object)
     df.insert(2, 'port', 22)
     df.insert(3, 'user', '')
     df.insert(4, 'password', '')
