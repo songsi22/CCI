@@ -20,15 +20,16 @@ def get_server_info(hostname, user, password, port=22) -> dict:
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
     try:
-        ssh.connect(hostname=hostname, port=port, username=user, password=password)
+        ssh.connect(hostname=hostname, port=port, username=user, password=password, timeout=3)
         shell = ssh.invoke_shell()
         shell.send(
             "echo START;"
             "echo OS:`hostnamectl | grep 'Operating System:' | awk -F': ' '{print $2}' | sed 's/ Linux//' | sed 's/ (.*)//' | sed 's/ LTS//'`;"
             "echo HOSTNAME:`hostname`;"
             "echo SWAP:`free -k|grep -i swap|awk '{print int($2/1024/1024+0.5)}'`; "
-            "echo Mount Point:`grep ^[A-Z,a-z,/] /etc/fstab|egrep -v 'swap|boot' | awk '$2 != \"/\" {print $2}'`;"
+            # "echo Mount Point:`grep ^[A-Z,a-z,/] /etc/fstab|egrep -v 'swap|boot' | awk '$2 != \"/\" {print $2}'`;"
             "echo NAS:`df -k | grep ^[1,2]|awk '{print int($2/1024/1024+0.5),$6}'`;"
+            "echo Mount Point:`df -h | grep -vE '^Filesystem|/boot|/$|swap|tmp' | grep -Ff <(awk '{print $2}' /etc/fstab | grep -v -E 'UUID=|swap|/boot|/ ') | awk '{print $1, $NF, $2}'`;"
             "echo IPs:`hostname -I`;"
             "echo END\n"
         )
@@ -71,16 +72,19 @@ def parse_system_info(data: str) -> dict:
     hostname = re.search(r'HOSTNAME:(.+)', data)
     swap_size = re.search(r'SWAP:(.+)', data)
     mount_points = re.search(r'Mount Point:(.+)', data)
-    nas_data = re.search(r'NAS:(.+)', data)
+    nas_data = re.search(r'NAS:(.+)', data).group(1)
+    nas_size_list = re.findall(r'\d+(?:\.\d+)?', nas_data)
     ip_list = re.search(r'IPs:(.+)', data)
-
     system_info = {
-        "OS": os_info.group(1).strip() if os_info else "Unknown",
-        "hostname": hostname.group(1).strip() if hostname else "Unknown",
-        "swap": swap_size.group(1).strip() if swap_size else "",
-        "MountPoint": mount_points.group(1).strip().split() if mount_points else [],
-        "NASsize": re.findall(r'\d+(?:\.\d+)?', nas_data.group(1)) if nas_data else [],
-        "IPs": ip_list.group(1).strip().split() if ip_list else []
+        ip_list.group(1).split()[0]: {
+            "OS": os_info.group(1).strip() if os_info else "Unknown",
+            "hostname": hostname.group(1).strip() if hostname else "Unknown",
+            "swap": swap_size.group(1).strip() if swap_size else "",
+            "MountPoint": re.findall(r'(\S+\s+/\S+\s+\S+)', mount_points.group(1)) if mount_points else [],
+            "NASsize": sum(int(size) for size in nas_size_list) if nas_size_list else '',
+            # "NAS": re.findall(r'(\d+\.\d+\.\d+\.\d+:[^ ]+ : [^ ]+ \d+)', nas_data.group(1)) if nas_data else [],
+            "IPs": ip_list.group(1).strip().split() if ip_list else []
+        }
     }
 
     return system_info
