@@ -2,7 +2,7 @@ import os
 from datetime import datetime
 import json
 from streamlit_option_menu import option_menu
-
+from st_aggrid import AgGrid, GridOptionsBuilder
 from csp_factory import CSPFactory
 import streamlit as st
 import pandas as pd
@@ -309,7 +309,16 @@ def front(session: str):
                 ]
         else:
             filtered = filter_df
-        st.dataframe(filtered, use_container_width=True)
+        filtered.reset_index(inplace=True)
+        gb = GridOptionsBuilder.from_dataframe(filtered)
+        gb.configure_default_column(wrapText=True, autoHeight=True, autoWidth=True)
+        cellStyle = {'whiteSpace': 'pre-wrap',  # 개행 처리
+                     'lineHeight': '20px'  # 줄 간격 설정 (선택 사항)
+                     }
+        gb.configure_column('Mount Point', cellStyle=cellStyle)
+        gb.configure_column('사설IP', cellStyle=cellStyle)
+        gbb = gb.build()
+        AgGrid(filtered, gbb, allow_unsafe_jscode=True)
 
 
 authenticator.login()

@@ -6,3 +6,4 @@ streamlit-keyup
 streamlit-option-menu
 streamlit-authenticator==0.3.2
 pyyaml
+streamlit-aggrid
