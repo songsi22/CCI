@@ -289,7 +289,6 @@ def front(session: str):
                     elif len(options) > 1:
                         df2 = read_template(userid=userid, customer=customer, filename=filename)
                         df = pd.concat([df, df2], axis=0, ignore_index=True)
-                    df.fillna('', inplace=True)
                 except Exception as e:
                     st.error(f'데이터 처리 중 오류 발생: {str(e)}')
             else:

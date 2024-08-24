@@ -44,9 +44,9 @@ def data_to_excel(inventories, csp_type, path, cday, customer=''):
         for volume in inventory['volumes']:
             if volume['bootable']:
                 if volume['volume_type'] == 'HDD':
-                    ws[f'F{i + 5}'].value = volume['size']  # HDD size
+                    ws[f'F{i + 5}'].value = str(volume['size'])  # HDD size
                 else:
-                    ws[f'G{i + 5}'].value = volume['size']  # SSD size
+                    ws[f'G{i + 5}'].value = str(volume['size'])  # SSD size
             else:
                 if volume['volume_type'] == 'HDD':
                     ext_hdd += volume['size']
@@ -54,9 +54,9 @@ def data_to_excel(inventories, csp_type, path, cday, customer=''):
                     ext_ssd += volume['size']
 
         if ext_ssd != 0:
-            ws[f'J{i + 5}'].value = ext_ssd  # ext SSD total(sum) size
+            ws[f'J{i + 5}'].value = str(ext_ssd)  # ext SSD total(sum) size
         if ext_hdd != 0:
-            ws[f'I{i + 5}'].value = ext_hdd  # ext HDD total(sum) size
+            ws[f'I{i + 5}'].value = str(ext_hdd)  # ext HDD total(sum) size
 
         ws[f'M{i + 5}'].value = inventory['publicip']  # pub ip
         ws[f'N{i + 5}'].value = vmguestip  # pri ip
