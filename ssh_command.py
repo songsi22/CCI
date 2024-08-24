@@ -3,7 +3,7 @@ import re
 import paramiko
 
 
-def get_server_info(hostname, user, password, port=22) -> dict:
+def get_server_info(ip, hostname, user, password, port=22) -> dict:
     """
     SSH를 통해 서버에 접속하여 시스템 정보를 수집하는 함수.
 
@@ -20,14 +20,13 @@ def get_server_info(hostname, user, password, port=22) -> dict:
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
     try:
-        ssh.connect(hostname=hostname, port=port, username=user, password=password, timeout=3)
+        ssh.connect(hostname=ip, port=port, username=user, password=password, timeout=3)
         shell = ssh.invoke_shell()
         shell.send(
             "echo START;"
             "echo OS:`hostnamectl | grep 'Operating System:' | awk -F': ' '{print $2}' | sed 's/ Linux//' | sed 's/ (.*)//' | sed 's/ LTS//'`;"
             "echo HOSTNAME:`hostname`;"
             "echo SWAP:`free -k|grep -i swap|awk '{print int($2/1024/1024+0.5)}'`; "
-            # "echo Mount Point:`grep ^[A-Z,a-z,/] /etc/fstab|egrep -v 'swap|boot' | awk '$2 != \"/\" {print $2}'`;"
             "echo NAS:`df -k | grep ^[1,2]|awk '{print int($2/1024/1024+0.5),$6}'`;"
             "echo Mount Point:`df -h | grep -vE '^Filesystem|/boot|/$|swap|tmp' | grep -Ff <(awk '{print $2}' /etc/fstab | grep -v -E 'UUID=|swap|/boot|/ ') | awk '{print $1, $NF, $2}'`;"
             "echo IPs:`hostname -I`;"
@@ -47,13 +46,13 @@ def get_server_info(hostname, user, password, port=22) -> dict:
             return {"error": "No valid data found between START and END markers"}
 
     except paramiko.AuthenticationException:
-        print("Authentication failed, please verify your credentials")
+        print(f"Authentication failed for {hostname}, please verify your credentials")
     except paramiko.SSHException as sshException:
-        print(f"Unable to establish SSH connection: {sshException}")
+        print(f"Unable to establish SSH connection to {hostname}: {sshException}")
     except paramiko.BadHostKeyException as badHostKeyException:
-        print(f"Unable to verify server's host key: {badHostKeyException}")
+        print(f"Unable to verify server's host key for {hostname}: {badHostKeyException}")
     except Exception as e:
-        print(f"Operation error: {e}")
+        print(f"Operation error on {hostname}: {e}")
     finally:
         ssh.close()
 
@@ -82,7 +81,6 @@ def parse_system_info(data: str) -> dict:
             "swap": swap_size.group(1).strip() if swap_size else "",
             "MountPoint": re.findall(r'(\S+\s+/\S+\s+\S+)', mount_points.group(1)) if mount_points else [],
             "NASsize": sum(int(size) for size in nas_size_list) if nas_size_list else '',
-            # "NAS": re.findall(r'(\d+\.\d+\.\d+\.\d+:[^ ]+ : [^ ]+ \d+)', nas_data.group(1)) if nas_data else [],
             "IPs": ip_list.group(1).strip().split() if ip_list else []
         }
     }
@@ -102,11 +100,12 @@ def get_system_info(servers: list) -> dict:
     """
     systems_info = {}
     for server in servers:
-        hostname = server['ip']
+        ip = server['ip']
+        hostname = server['hostname']
         user = server['user']
         password = server['password']
         port = server['port']
-        system_info = get_server_info(hostname=hostname, port=port, user=user, password=password)
+        system_info = get_server_info(ip=ip, port=port, user=user, password=password, hostname=hostname)
         if system_info:
             systems_info.update(system_info)
     return systems_info
