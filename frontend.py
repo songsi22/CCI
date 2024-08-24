@@ -310,14 +310,14 @@ def front(session: str):
             filtered = filter_df
         filtered.reset_index(inplace=True)
         gb = GridOptionsBuilder.from_dataframe(filtered)
-        gb.configure_default_column(wrapText=True, autoHeight=True, autoWidth=True)
-        cellStyle = {'whiteSpace': 'pre-wrap',  # 개행 처리
-                     'lineHeight': '20px'  # 줄 간격 설정 (선택 사항)
-                     }
-        gb.configure_column('Mount Point', cellStyle=cellStyle)
-        gb.configure_column('사설IP', cellStyle=cellStyle)
+        gb.configure_default_column(wrapText=True, autoHeight=True, autoWidth=True,
+                                    cellStyle={'whiteSpace': 'pre-wrap',  # 개행 처리
+                                               'lineHeight': '20px',  # 줄 간격 설정
+                                               'textAlign': 'center', # 텍스트 가운데 정렬
+                                               'justifyContent': 'center'  # 셀 내용 가운데 정렬
+                                               })
         gbb = gb.build()
-        AgGrid(filtered, gbb, allow_unsafe_jscode=True)
+        AgGrid(filtered, gridOptions=gbb, allow_unsafe_jscode=True,height=600)
 
 
 authenticator.login()
