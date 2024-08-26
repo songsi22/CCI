@@ -28,7 +28,7 @@ def resource_path(relative_path):
     try:
         base_path = sys._MEIPASS
     except Exception:
-        base_path = os.path.abspath("..")
+        base_path = os.path.abspath(".")
 
     return os.path.join(base_path, relative_path)
 
@@ -82,7 +82,7 @@ def ssh_template_update(ip, port, user, auth_method, key_path, password, base_pa
                     ws[f'C{cell.row}'] = info['OS']
                     ws[f'H{cell.row}'] = info['swap']
                     ws[f'L{cell.row}'] = "\n".join(info['MountPoint'])
-                    ws[f'K{cell.row}'] = info['NASsize']
+                    ws[f'K{cell.row}'] = info['NASsize'] if 'NASsize' in info else ''
                     ws[f'N{cell.row}'] = "\n".join(info['IPs'])
                     ws[f'L{cell.row}'].alignment = Alignment(wrap_text=True, horizontal='center', vertical='center')
                     ws[f'K{cell.row}'].alignment = Alignment(wrap_text=True, horizontal='center', vertical='center')
