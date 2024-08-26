@@ -60,9 +60,9 @@ def get_server_info(ip, hostname, user, password, port=22) -> dict:
             command = ("Write-Host START; "
                        "Write-Host OS:(Get-CimInstance -ClassName Win32_OperatingSystem).Caption; "
                        "Write-Host HOSTNAME:$env:COMPUTERNAME; "
-                       "$swapSizeMB = (Get-CimInstance -ClassName Win32_OperatingSystem).TotalVirtualMemorySize / 1MB;Write-Host SWAP:$([math]::Round($swapSizeMB, 2))GB; "
+                       "$swapSizeMB = (Get-CimInstance -ClassName Win32_OperatingSystem).TotalVirtualMemorySize / 1MB;Write-Host SWAP:$([math]::Round($swapSizeMB, 2)); "
                        # "Write-Host 'Mount Point:'(Get-PSDrive -PSProvider FileSystem | Where-Object {$_.Used -gt 0} | ForEach-Object {\"$($_.Name) $($_.Root) $([math]::Round(($_.Used + $_.Free)/1GB, 2))\"}); "
-                       "Write-Host 'Mount Point:'(Get-PSDrive -PSProvider FileSystem | Where-Object {$_.Used -gt 0} | ForEach-Object {\"$($_.Name) $([math]::Round(($_.Used + $_.Free)/1GB, 2))\"}); "
+                       "Write-Host 'Mount Point:'(Get-PSDrive -PSProvider FileSystem | Where-Object {$_.Used -gt 0} | ForEach-Object {\"$($_.Root) $([math]::Round(($_.Used + $_.Free)/1GB, 2))GB\"}); "
                        "Write-Host IPs:(Get-NetIPAddress | Where-Object {$_.AddressFamily -eq \"IPv4\" -and $_.PrefixOrigin -eq \"Dhcp\"} | Select-Object -ExpandProperty IPAddress); "
                        "Write-Host END")
             output = session.run_ps(command)
@@ -109,7 +109,7 @@ def win_parse_system_info(data: str) -> dict:
             "OS": os_info.group(1).strip() if os_info else "Unknown",
             "hostname": hostname.group(1).strip() if hostname else "Unknown",
             "swap": swap_size.group(1).strip() if swap_size else "",
-            "MountPoint": re.findall(r'[A-Z]+\s\S*', mount_points.group(1)) if mount_points else [],
+            "MountPoint": re.findall(r'[A-Z]:\\+\s\S*', mount_points.group(1)) if mount_points else [],
             "IPs": ip_list.group(1).strip().split() if ip_list else []
         }
     }
