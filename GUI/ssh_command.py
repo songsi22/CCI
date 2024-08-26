@@ -106,7 +106,7 @@ def win_parse_system_info(data: str) -> dict:
 
     system_info = {
         ip_list.group(1).split()[0]: {
-            "OS": os_info.group(1).strip() if os_info else "Unknown",
+            "OS": os_info.group(1).replace('Microsoft','').strip() if os_info else "Unknown",
             "hostname": hostname.group(1).strip() if hostname else "Unknown",
             "swap": swap_size.group(1).strip() if swap_size else "",
             "MountPoint": re.findall(r'[A-Z]:\\+\s\S*', mount_points.group(1)) if mount_points else [],
