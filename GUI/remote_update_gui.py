@@ -9,7 +9,7 @@ import paramiko
 from openpyxl import load_workbook
 from openpyxl.styles import Alignment
 import ssh_command
-
+import re
 
 def log_message(label, message):
     """
@@ -54,8 +54,9 @@ def ssh_template_update(ip, port, user, auth_method, key_path, password, base_pa
         log_message(label, "세션 열기...")
         sftp = ssh.open_sftp()
 
-        customer = filename.split('-')[0]
-        csp_type = filename.split('-')[1]
+        filename_split = re.split(r'-(KTC.?|NHN.?|NCP.?)-',filename)
+        customer = filename_split[0]
+        csp_type = filename_split[1]
         new_filename = f'{customer}-{csp_type}-inventory-{cday}.xlsx'
         remote_excel_path = f'{base_path}/{partname}_files/{filename}'
         local_excel_path = new_filename
