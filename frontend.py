@@ -313,11 +313,11 @@ def front(session: str):
         gb.configure_default_column(wrapText=True, autoHeight=True, autoWidth=True,
                                     cellStyle={'whiteSpace': 'pre-wrap',  # 개행 처리
                                                'lineHeight': '20px',  # 줄 간격 설정
-                                               'textAlign': 'center', # 텍스트 가운데 정렬
+                                               'textAlign': 'center',  # 텍스트 가운데 정렬
                                                'justifyContent': 'center'  # 셀 내용 가운데 정렬
                                                })
         gbb = gb.build()
-        AgGrid(filtered, gridOptions=gbb, allow_unsafe_jscode=True,height=600)
+        AgGrid(filtered, gridOptions=gbb, allow_unsafe_jscode=True, height=600)
 
 
 authenticator.login()
@@ -329,23 +329,34 @@ if st.session_state['authentication_status']:
             st.subheader(f'사용자: {session_username}')
         with col2:
             authenticator.logout()
-        choice = option_menu("메뉴", ["인벤토리", "고객사 관리", "인벤토리 관리"],
-                             icons=['file-bar-graph', 'people-fill', 'files'],
-                             menu_icon="app-indicator", default_index=0,
-                             styles={
-                                 "container": {"padding": "4!important", "background-color": "#fafafa"},
-                                 "icon": {"color": "black", "font-size": "25px"},
-                                 "nav-link": {"font-size": "16px", "text-align": "left", "margin": "0px",
-                                              "--hover-color": "#fafafa"},
-                                 "nav-link-selected": {"background-color": "#08c7b4"},
-                             }
-                             )
-    if choice == '인벤토리':
+        if 'menu_choice' not in st.session_state:
+            st.session_state['menu_choice'] = "인벤토리"  # 기본 메뉴 선택
+
+        # Option menu 선택
+        st.session_state['menu_choice'] = option_menu("메뉴",
+                                                      ["인벤토리", "고객사 관리", "인벤토리 관리"],
+                                                      icons=['file-bar-graph', 'people-fill', 'files'],
+                                                      menu_icon="app-indicator",
+                                                      default_index=0,
+                                                      styles={
+                                                          "container": {"padding": "5!important",
+                                                                        "background-color": "#fafafa"},
+                                                          "icon": {"color": "black", "font-size": "20px"},
+                                                          "nav-link": {"font-size": "14px", "text-align": "left",
+                                                                       "margin": "0px",
+                                                                       "--hover-color": "#eeeeee"},
+                                                          "nav-link-selected": {"background-color": "#08c7b4"},
+                                                      }
+                                                      )
+
+    # 선택된 메뉴에 따른 화면 표시
+    if st.session_state['menu_choice'] == '인벤토리':
         front(session=session_username)
-    elif choice == '고객사 관리':
+    elif st.session_state['menu_choice'] == '고객사 관리':
         manage_customer(session=session_username)
-    elif choice == '인벤토리 관리':
+    elif st.session_state['menu_choice'] == '인벤토리 관리':
         manage_inventory(session=session_username)
+
 elif st.session_state['authentication_status'] is False:
     st.error('Username/password is incorrect')
 elif st.session_state['authentication_status'] is None:
