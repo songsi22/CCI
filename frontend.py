@@ -321,7 +321,7 @@ def front(session: str):
 
 
 authenticator.login()
-if st.session_state['authentication_status']:
+if st.session_state['authentication_status'] and st.session_state['logout'] is None:
     session_username = st.session_state['username']
     with st.sidebar:
         col1, col2 = st.columns(2)
